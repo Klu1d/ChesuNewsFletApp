@@ -1,19 +1,16 @@
 import json
 import re
 import requests
-import time
 import flet as ft
 
 
-def RegisterView(page, myPyrebase):
-    title = 'Register to Flet + Pyrebase'
-
+def RegisterView(page, firebase):
     def handle_sign_up(e):
         try:
             preloader()
             back_button.disabled = True #чтобы нельзя было нажать на стрелку назад, во время создания аккаунта
             back_button.update()
-            myPyrebase.register_user(name.value.title(), last_name.value.title(), role.value, email.value, password.value)
+            firebase.register_user(name.value.title(), last_name.value.title(), role.value, email.value, password.value)
             email.value, confirm.value, password.value  = '', '', '',         
             page.go('/verification')
         except requests.exceptions.HTTPError as e:
@@ -152,5 +149,4 @@ def RegisterView(page, myPyrebase):
     
     return {
         'view':myPage,
-        'title': title
-        }
+    }

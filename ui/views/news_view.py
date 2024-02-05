@@ -1,42 +1,45 @@
 import time
 import flet as ft
 
+from flet_contrib.shimmer import Shimmer
 from ui.controller.top_bar import TopBar
 from ui.controller.tab_display import TabDisplay
-from ui.controller.shimmer import Shimmer
+from ui.widgets.custom_shimmer import CustomShimmer
 
-def NewsView(page, myPyrebase):
-    
+def NewsView(page, firebase):
     def handle_stream(message):
         try:
             build_tabs()
             page.update()
-        except:
-            pass
+        except Exception as e:
+            print('NewsView: ', e)
 
     def on_page_load():
-        if myPyrebase.check_token() == 'Success':
-            myPyrebase.stream_data(handle_stream)
-            handle = myPyrebase.get_username()
+        if firebase.check_token() == 'Success':
+            firebase.stream_data(handle_stream)
             page.update()
 
     def handle_logout(*e):
         clean_tabs()
-        myPyrebase.kill_all_streams()
-        myPyrebase.sign_out()
+        firebase.kill_all_streams()
+        firebase.sign_out()
         page.controls[0].content.content.controls[1].controls[0].selected_index = 0
         page.go('/')
     
     def on_click_category(e):
+        categories.open=False
+        categories.show_drag_handle=False
+        page.update()
+        
         categories.content.content.controls[page.client_storage.get('current_index_tab')].bgcolor=None
         categories.content.content.controls[e.control.key].bgcolor=ft.colors.BLACK12
         page.controls[0].content.content.controls[1].controls[0].selected_index = e.control.key
-        categories.open=False
         page.update()
+        
         on_load_tab_content(e.control.key)
     
     def on_click_categories(e):
-        data = myPyrebase.get_tabs()
+        tabs = page.client_storage.get('tabs')
         categories.content.content.controls = []
         for i, category in enumerate(all_tabs):
             categories.content.content.controls.append(
@@ -48,7 +51,7 @@ def NewsView(page, myPyrebase):
                     bgcolor=None,
                     height=50, 
                     content=ft.Text(
-                        value=data[category.tab_content.value], 
+                        value=tabs[category.tab_content.value], 
                         weight=ft.FontWeight.BOLD, 
                         color=ft.colors.SECONDARY, 
                         size=18
@@ -58,59 +61,45 @@ def NewsView(page, myPyrebase):
         page.overlay.clear()
         page.overlay.append(categories)
         categories.content.content.controls[page.client_storage.get('current_index_tab')].bgcolor=ft.colors.BLACK12
+        categories.show_drag_handle=True
         categories.open = True
         page.update()
         
     def on_dismiss(e):
+        categories.show_drag_handle=False
+        categories.open = False
         page.overlay.clear()
         page.update()
         
     def on_load_tab_content(index):
         page.client_storage.set('current_index_tab', index)
         current_tab = all_tabs[index]
-        full_name = myPyrebase.get_tabs()[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
+        full_name = page.client_storage.get('tabs')[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
         
-        if page.client_storage.get('bookmarks') == None:
-            page.client_storage.set('bookmarks', [])
-        
-        if current_tab.content.data == 'shimmer':
-            current_tab.content=TabDisplay(page=page, tab_name=full_name, myPyrebase=myPyrebase)
+        current_tab.content=TabDisplay(page, full_name, firebase)
         
         page.overlay.clear()
         page.update()
-        
+    
     def build_tabs():
         all_tabs.clear()
-        new = ft.Container(data='shimmer_load', border_radius=15, padding=5, height=220, width=3000,content=ft.Container(data='shimmer_load', border_radius=15, padding=30, content=ft.Column(spacing=15, alignment=ft.MainAxisAlignment.END, controls=[ft.Text(value='texttexttexttexttexttext', data='shimmer_load'), ft.Text(value='20-30-1203', data='shimmer_load')])))
-        old = ft.Container(data='shimmer_load', border_radius=15, margin=ft.margin.only(right=15, left=15),padding=5, height=100, content=ft.Row(spacing=10,controls=[ft.Container(data='shimmer_load', border_radius=15, width=100, height=100),ft.Column(alignment=ft.MainAxisAlignment.CENTER, spacing=10, controls=[ft.Text(value='tettexttexttexttext', data='shimmer_load'), ft.Text(value='20-30-1203', data='shimmer_load') ])]))
-        temp = [
-            Shimmer(control=new, auto_generate=True),
-            Shimmer(control=old, auto_generate=True),
-            Shimmer(control=old, auto_generate=True),
-            Shimmer(control=old, auto_generate=True),
-            Shimmer(control=old, auto_generate=True),
-            Shimmer(control=old, auto_generate=True),
-        ]
-        for abbreviature in page.client_storage.get("abbreviature"):
+        shimmer = CustomShimmer(height=page.window_height, first_big=True)
+        for abbreviature in page.client_storage.get('tabs').keys():
             all_tabs.append(
-                    ft.Tab(
-                        tab_content=ft.Text(
-                            size=20, 
-                            value=abbreviature, 
-                            weight=ft.FontWeight.W_900, 
-                        ),
-                        content=ft.Container(
-                            expand=True, 
-                            data='shimmer', 
-                            padding=ft.padding.only(left=15, right=15), 
-                            content=ft.Column(
-                                expand=True,
-                                controls=temp,
-                                
-                            )
-                        )
+                ft.Tab(
+                    tab_content=ft.Text(
+                        size=20, 
+                        value=abbreviature, 
+                        weight=ft.FontWeight.W_900, 
                     ),
-                )
+                    content=ft.Container(
+                        data='shimmer', 
+                        padding=ft.padding.only(left=15, right=15), 
+                        content=shimmer
+                    )
+                ),
+            )
+        
         page.update() 
         
         for i, category in enumerate(all_tabs):
@@ -123,7 +112,7 @@ def NewsView(page, myPyrebase):
                     bgcolor=None,
                     height=50, 
                     content=ft.Text(
-                        value=myPyrebase.get_tabs()[category.tab_content.value], 
+                        value=page.client_storage.get('tabs')[category.tab_content.value], 
                         weight=ft.FontWeight.BOLD, 
                         color=ft.colors.SECONDARY, 
                         size=18
@@ -133,15 +122,7 @@ def NewsView(page, myPyrebase):
         page.update()
         
         on_load_tab_content(tabs.selected_index)
-        
-    def preloader(activate):
-        if activate:
-            page.overlay.append(ft.Container(bgcolor='red',width=200, height=200, on_click=lambda _: print("dada")))
-            page.update()
-        else:
-            page.overlay.clear()
-            page.update()
-   
+
     def clean_tabs():
         all_tabs.clear()
         page.update()
@@ -165,6 +146,7 @@ def NewsView(page, myPyrebase):
         tabs=all_tabs,
     )
     button_categories = ft.Container(
+        
         padding=ft.padding.only(top=3),
         bgcolor=ft.colors.BACKGROUND,
         content=ft.IconButton(
@@ -181,6 +163,7 @@ def NewsView(page, myPyrebase):
         ),
     ) 
     categories = ft.BottomSheet(
+        
         open=True,
         enable_drag=True,
         show_drag_handle=True,
@@ -212,8 +195,6 @@ def NewsView(page, myPyrebase):
             )
         ],
     )
-   
-    
             
     return {
         'view': myPage,

@@ -99,7 +99,9 @@ class TopBar(ft.UserControl):
         )
         
         return ft.Stack(
+            
             controls=[
+                
                 ft.Container(
                     padding=5,
                     
@@ -171,10 +173,7 @@ class TopBar(ft.UserControl):
     def show_settings(self, e:ft.TapEvent):
         e.page.overlay.clear()
         e.page.overlay.append(self.settings)
-        
         self.settings.open = True
-    
-        
         e.page.update()
         self.settings.update()
 

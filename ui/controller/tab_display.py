@@ -4,47 +4,42 @@ from ui.widgets.custom_bottom_sheet import CustomBottomSheet
 
 
 class TabDisplay(ft.UserControl):
-    def __init__(self, page, tab_name, myPyrebase=None):
+    def __init__(self, page, tab_name, firebase=None):
         super().__init__()
         self.page = page
         self.tab_name = tab_name
-        self.myPyrebase = myPyrebase
-        self.news_sheet = CustomBottomSheet(pyrebase=self.myPyrebase)
+        self.firebase = firebase
+        self.news_sheet = CustomBottomSheet(pyrebase=self.firebase)
 
     def build(self):
         self.empty = ft.Container(
-            data="empty",
-            height=400,
-            opacity=0.6,
-            content=ft.Row(
+            data='empty',
+            alignment=ft.alignment.center,
+            content=ft.Column(
+                scroll=None,
                 alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER, 
                 controls=[
-                    ft.Container(
-                        bgcolor=ft.colors.SECONDARY_CONTAINER,
-                        border_radius=15,
-                        height=100,
-                        padding=10,
-                        alignment=ft.alignment.center,
-                        content=ft.Row(
-                            controls=[
-                                ft.Icon(opacity=0.9, name=ft.icons.SPEAKER_NOTES_OFF_ROUNDED, size=80),
-                                ft.Text(opacity=0.9, value="Новостей пока нет", size=20, weight=ft.FontWeight.W_600 ),
-                            ]
-                        )
-                    )
+                    ft.CircleAvatar(
+                        radius=52.5,
+                        bgcolor=ft.colors.with_opacity(0.3, ft.colors.GREY), 
+                        content=ft.Icon(ft.icons.SPEAKER_NOTES_OFF_OUTLINED, size=50)
+                    ),
+                    ft.Text(value='В разделе пока тишина.', size=18)
                 ]
             )
         )
         
-        news = self.myPyrebase.get_news(self.tab_name) if self.tab_name != "Новости" else self.myPyrebase.get_news()
-        return ft.ListView(expand=True, controls=self.full_up_controls(news), spacing=10)
-
+        
+        news = self.firebase.get_news(self.tab_name) if self.tab_name != 'Новости' else self.firebase.get_news()
+        tab_content = ft.ListView(expand=True, controls=self.full_up_controls(news), spacing=10)
+        return tab_content if tab_content.controls != [] else self.empty
 
         
 
     def full_up_controls(self, news_data):
         try:
-            container = Board(self.page, pyrebase=self.myPyrebase)
+            container = Board(self.page, self.firebase)
             
             list_finish_bords = []
             for i in range(len(news_data)):
@@ -67,8 +62,8 @@ class TabDisplay(ft.UserControl):
                         )
                     )
         except Exception as e:
-            print(e)
-            list_finish_bords = [self.empty]
+            print('tab_display: ', e)
+            list_finish_bords = []
         finally:
             return list_finish_bords
     def time_sort(self, e):

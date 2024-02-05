@@ -1,21 +1,14 @@
 import flet as ft
 
-def IndexView(page, myPyrebase=None):
-    title = 'Flet + Pyrebase'
-   
-
+def IndexView(page, firebase=None):
     def on_load():
         try:
-            preloader(True)
-            if myPyrebase.check_token():
+            if firebase.check_token():
                 page.go('/news')
-            else:
-                preloader(False)
         except Exception as e:
-            preloader(False)
+            print('IndexView: ', e)
 
     def handle_sign_in_error():
-        preloader(False)
         page.snack_bar = ft.SnackBar(
             content=ft.Text('Неправильный логин или пароль', color=ft.colors.WHITE),
             bgcolor=ft.colors.RED,
@@ -26,23 +19,20 @@ def IndexView(page, myPyrebase=None):
 
     def handle_sign_in(e):
         try:
-            preloader(True)
-            myPyrebase.sign_in(email.value, password.value)
+            firebase.sign_in(email.value, password.value)
             password.value = ''
             page.go('/news')
-        except:
+        except Exception as e:
+            print('User IndexView: ', e)
             handle_sign_in_error()
             page.update()
 
     def handle_sign_in_anonymous(e):
-        try:
-            preloader(True)
-            myPyrebase.login_in_anonymous()
-            password.value = ''
-            page.go('/news')
-        except:
-            handle_sign_in_error()
-            page.update()
+        firebase.login_in_anonymous()
+        email.value = ''
+        password.value = ''
+        page.go('/news')
+        page.update()
 
     def handle_register(e):
         page.go('/register')
@@ -56,13 +46,7 @@ def IndexView(page, myPyrebase=None):
         dlg_modal.open = False
         page.update()
 
-    def preloader(activate):
-        if activate:
-            page.overlay.append(ft.Container(bgcolor='background, 0.5', expand=True, disabled=True,alignment=ft.alignment.center, content=ft.ProgressRing()))
-            page.update()
-        else:
-            page.overlay.clear()
-            page.update()
+
             
     banner = ft.Image(src='./logo/logo.png', expand=True, border_radius=5, fit=ft.ImageFit.COVER)
     welcome_text = ft.Text('Welcome', size=26, bottom=10, right=10, color=ft.colors.WHITE70)
@@ -79,16 +63,17 @@ def IndexView(page, myPyrebase=None):
     sign_in_without = ft.TextButton('Войти без аккаунта', on_click=handle_sign_in_anonymous)
     info = ft.IconButton(ft.icons.INFO_OUTLINE_ROUNDED, on_click=open_dlg_modal)
     
-
+    
     dlg_modal = ft.AlertDialog(
+        
         modal=True,
         adaptive=True,
         title=ft.Text('Важная информация!'),
         content=ft.Column(scroll='hidden',
             controls=[
                 ft.Text('"Войти без аккаунта" — означает что вы можете пользоваться \
-                        приложением без необходимости процесса регистрации. Что дает \
-                        возможность просматривать текущие события в университете\n\nНо \
+                        приложением без необходимости процесса регистрации. Что дает\
+                        возможность просматривать текущие события в университете\n\nНо\
                         при наличии аккаунта в системе вы приобретаете особые регалии \
                         позволяющие взаимодействовать как с приложением, так и университетом', 
                         text_align='start')]),
@@ -140,6 +125,5 @@ def IndexView(page, myPyrebase=None):
     
     return {
         'view':myPage,
-        'title': title,
         'load': on_load
         }

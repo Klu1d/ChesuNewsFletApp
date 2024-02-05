@@ -1,33 +1,35 @@
 import flet as ft
 
 
-def VerificationView(page, myPyrebase):    
+def VerificationView(page, firebase):    
     def handle_sign_up(e):
         try:
             preloader()
-            if myPyrebase.email_verified() == True:
+            print(firebase.account_info()['emailVerified'])
+            if firebase.account_info()['emailVerified'] == True:
                 page.go('/news')
             else:
                 handle_sign_in_error()
         except Exception as e:
-            handle_sign_in_error(text='Что то пошло не так, измените данные либо попробуйте еще раз')
+            print(e)
         finally:
             preloader(False)
     
-    def handle_sign_in_error(text='Ваш аккаунт не является подтвержденным'):
+    def handle_sign_in_error(text='Ваш аккаунт не подтвержден'):
         page.snack_bar = ft.SnackBar(
             content=ft.Text(text, color=ft.colors.WHITE),
             bgcolor=ft.colors.RED
         )
         page.snack_bar.open = True
         page.update()
-        
+    
     def preloader(boolevo = True):
         login_button.content.controls[0].visible = not (boolevo)
         login_button.content.controls[1].visible = boolevo
         page.update()   
         
     def on_click_back(e):
+        firebase.remove_user()
         page.go('/register')
     
     back_button = ft.TextButton('Изменить почту', expand=1, on_click=on_click_back)
@@ -55,7 +57,7 @@ def VerificationView(page, myPyrebase):
                                     padding=20,
                                     content=ft.Column(
                                         controls=[
-                                            ft.Text('На вашу почту отправлено пиьсмо с ссылкой для подтверждение аккаунта. Пожалуйста, нажмите на ссылку и возвращайтесь'),
+                                            ft.Text('На вашу почту отправлена ссылка для подтверждение аккаунта. Пожалуйста, нажмите на ссылку и возвращайтесь'),
                                             ft.Row([back_button, login_button],
                                                 alignment=ft.MainAxisAlignment.CENTER),
                                         ],

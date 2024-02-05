@@ -4,12 +4,12 @@ from datetime import date, timedelta
 from ui.controller.carousel import Carousel
         
 class Board(ft.UserControl):
-    def __init__(self, page, pyrebase):
+    def __init__(self, page, firebase):
         super().__init__()
-        self.pyrebase = pyrebase
+        self.firebase = firebase
         self.page = page    
     
-    def old(self, number, image, headline, time, disable = False, opacity=True):
+    def old(self, number, image, headline, time, disable = False, opacity=True, checkbox=False):
         return ft.Container(
             key=number,
             height=100,
@@ -20,7 +20,7 @@ class Board(ft.UserControl):
             disabled=disable,
             animate_size=ft.animation.Animation(150),
             border_radius=15,
-            on_click=lambda e: self.on_click_board_container(e, number),
+            on_click=lambda e: self.on_click_board_container(e, number, checkbox),
             content=ft.Container(
                 bgcolor="secondarycontainer, 0.8",
                 padding=ft.padding.only(left=5, right=5, top=5, bottom=5),
@@ -164,7 +164,7 @@ class Board(ft.UserControl):
                 ] 
             )
  
-    def show_news_sheet(self, news_number):
+    def show_news_sheet(self, news_number, icon_bookmark):
         self.news_sheet = ft.BottomSheet(
             use_safe_area=True,
             dismissible=True,
@@ -194,14 +194,15 @@ class Board(ft.UserControl):
                                         controls=[
                                             ft.IconButton(
                                                 selected=True,
-                                                icon=ft.icons.ARROW_BACK_IOS_ROUNDED,
-                                                on_click=self.on_click_arrow_back 
+                                                icon=ft.icons.CLOSE_ROUNDED,
+                                                on_click=self.on_click_close 
                                             ),
                                             ft.Text(expand=True, overflow=ft.TextOverflow.ELLIPSIS, weight=ft.FontWeight.BOLD),
                                             ft.Row(
                                                 spacing=1,
                                                 controls=[
                                                     ft.IconButton(
+                                                        visible=icon_bookmark,
                                                         data=news_number,
                                                         icon_color=ft.colors.PRIMARY,
                                                         icon=ft.icons.BOOKMARK_BORDER,
@@ -240,7 +241,7 @@ class Board(ft.UserControl):
         return self.news_sheet
     
     def on_load_news(self, news_number):
-        news = self.pyrebase.get_news(news_number)
+        news = self.firebase.get_news(news_number)[0]
         self.news_sheet.content.content.controls[0].content.controls[0].controls[1].value = news["headline"]
         self.news_sheet.content.content.controls[1].content.controls = [
             ft.Container(
@@ -286,12 +287,14 @@ class Board(ft.UserControl):
         e.control.selected = not e.control.selected
         self.page.update()
         
-        bookmarks = self.page.client_storage.get("bookmarks") if self.page.client_storage.get("bookmarks") != None else []
+        bookmarks = self.page.client_storage.get("bookmarks")
         if e.control.data in bookmarks:
             bookmarks.remove(e.control.data)
+            self.firebase.set_bookmark(bookmarks)
             self.page.client_storage.set("bookmarks", bookmarks)
         else:
             bookmarks.insert(0, e.control.data)
+            self.firebase.set_bookmark(bookmarks)
             self.page.client_storage.set("bookmarks", bookmarks)     
 
     def on_click_text_size(self, e):
@@ -361,26 +364,26 @@ class Board(ft.UserControl):
     def on_dismiss_news_sheet(self, e):
         self.page.overlay.clear()
     
-    def on_click_arrow_back(self, e):
+    def on_click_close(self, e):
         self.news_sheet.open = False
         self.page.update()
         self.page.overlay.clear()
 
-    def on_click_board_container(self, event: ft.TapEvent, number: int):
+    def on_click_board_container(self, event: ft.TapEvent, number: int, checkbox: bool = False):
+
         self.slider_value = self.page.client_storage.get("slider_value")
+        self.page.overlay.clear()
+        news_paper = self.show_news_sheet(number, False if len(self.page.views) == 2 else True)
         
-        news_paper = self.show_news_sheet(number)
         self.page.overlay.clear()
         self.page.overlay.append(news_paper)
         news_paper.open = True
         self.page.update()
         
-        self.on_load_news(number)
-        
-        self.news_sheet.update()
+        self.on_load_news(number)            
         self.page.update()
             
-        event.control.opacity = 0.6
+        event.control.opacity = 0.6 if event.control.ink != False else 1
         event.control.update()
             
     def time_display(self, input_date: str):
