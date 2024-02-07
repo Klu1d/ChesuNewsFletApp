@@ -9,15 +9,16 @@ class Board(ft.UserControl):
         self.firebase = firebase
         self.page = page    
     
-    def old(self, number, image, headline, time, disable = False, opacity=True, checkbox=False):
+    def old(self, number, image, headline, time, vision=True, opacity=True, checkbox=False):
         return ft.Container(
-            key=number,
+            key=str(number),
+            data=time,
+            
+            visible=vision,
+            ink=opacity,
             height=100,
             opacity=1,
-            visible=True,
-            ink=opacity,
             margin=ft.margin.only(right=15, left=15, bottom=0, top=0),
-            disabled=disable,
             animate_size=ft.animation.Animation(150),
             border_radius=15,
             on_click=lambda e: self.on_click_board_container(e, number, checkbox),
@@ -64,6 +65,7 @@ class Board(ft.UserControl):
             height=220,
             ink=True,
             opacity=1,
+            data=time,
             key=number,
             border_radius=15,
             alignment=ft.alignment.center_left,
@@ -395,6 +397,6 @@ class Board(ft.UserControl):
         elif input_date.split(' ')[0] == yesterday:
             return f"Вчера в {input_date.split(' ')[1]}"
         else:
-            return input_date.split(' ')[0]
+            return input_date
     
 

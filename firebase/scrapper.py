@@ -39,8 +39,9 @@ class ChesuNews:
 
 def scrap_news(page, myPyrebase):
     tg = BeautifulSoup(requests.get("https://www.chesu.ru").text, 'lxml').find_all('a', {'class':'image'})
-    new_number = int(tg[0]['href'].split('=')[1]) #Получение номера последней новости    
-    current_number = 7300
+    new_number = int(tg[0]['href'].split('=')[1]) #Получение номера последней новости  
+    print(new_number)  
+    current_number = 7609
     while current_number != new_number:
         try:
             url = f"https://www.chesu.ru/news-item?p={current_number}"

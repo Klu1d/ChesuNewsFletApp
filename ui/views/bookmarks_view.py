@@ -11,7 +11,7 @@ def BookmarksView(page, firebase):
             preloader(True)
             
             storage = page.client_storage.get('bookmarks')
-            display = [i.controls[0].key for i in container_favorites.content.controls]
+            display = [int(i.controls[0].key) for i in container_favorites.content.controls]
             difference = list(set(storage) ^ set(display))
             
             for number in difference:
@@ -106,7 +106,7 @@ def BookmarksView(page, firebase):
         e.control.text = 'Отменить'
         e.control.on_click = on_click_cancel
         for checkbox in container_favorites.content.controls:
-            checkbox.controls[1].bgcolor = 'black, 0.2'
+            checkbox.controls[1].bgcolor = 'black, 0.4'
             checkbox.controls[1].content.content.value = True
 
         button_remove_favorites.disabled = False
@@ -145,7 +145,7 @@ def BookmarksView(page, firebase):
         for checkbox in copy.copy(container_favorites.content.controls):
             if checkbox.controls[1].content.content.value == True:
                 container_favorites.content.controls.remove(checkbox)
-                bookmarks.remove(checkbox.controls[0].key)
+                bookmarks.remove(int(checkbox.controls[0].key))
                 page.client_storage.set('bookmarks', bookmarks)
                 firebase.set_bookmark(bookmarks)
         if bookmarks == []:

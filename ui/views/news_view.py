@@ -8,11 +8,8 @@ from ui.widgets.custom_shimmer import CustomShimmer
 
 def NewsView(page, firebase):
     def handle_stream(message):
-        try:
-            build_tabs()
-            page.update()
-        except Exception as e:
-            print('NewsView: ', e)
+        build_tabs()
+        page.update()
 
     def on_page_load():
         if firebase.check_token() == 'Success':
@@ -76,7 +73,9 @@ def NewsView(page, firebase):
         current_tab = all_tabs[index]
         full_name = page.client_storage.get('tabs')[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
         
-        current_tab.content=TabDisplay(page, full_name, firebase)
+        if current_tab.content.data == 'shimmer':
+            current_tab.content.data = 'content'
+            current_tab.content=TabDisplay(page, full_name, firebase)
         
         page.overlay.clear()
         page.update()
@@ -95,7 +94,7 @@ def NewsView(page, firebase):
                     content=ft.Container(
                         data='shimmer', 
                         padding=ft.padding.only(left=15, right=15), 
-                        content=shimmer
+                        
                     )
                 ),
             )
