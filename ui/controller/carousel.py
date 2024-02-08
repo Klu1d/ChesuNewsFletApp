@@ -64,7 +64,6 @@ class Carousel(ft.UserControl):
                     carousel_btn.height = 7
             self.update()
 
-    # Register callbacks
     def carousel_click(self, e):
         self.carousel_image_ref.current.src = e.control.data
         e.control.bgcolor = self.active_color

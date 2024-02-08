@@ -74,6 +74,7 @@ def BookmarksView(page, firebase):
     def on_click_container_checkbox(e: ft.ControlEvent):
         e.control.content.content.value = not (e.control.content.content.value)
         e.control.bgcolor = 'black, 0.4' if e.control.content.content.value == True else None
+        page.update()
         #если у всех элементов checkbox значение True, я возвращаю True
         chooced_all = all(checkbox.controls[1].content.content.value == True for checkbox in container_favorites.content.controls)
         no_chooced_all = all(checkbox.controls[1].content.content.value == False for checkbox in container_favorites.content.controls)

@@ -9,7 +9,6 @@ def main(page: ft.Page):
     page.window_width, page.window_height = 475, 1150
     page.window_left = 10
     page.window_top = 120
-    page.theme_mode = "dark"
     page.padding = 0
     page.update()
     page.theme = ft.Theme(

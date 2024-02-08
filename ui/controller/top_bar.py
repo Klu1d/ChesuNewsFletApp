@@ -7,23 +7,17 @@ class TopBar(ft.UserControl):
         self.exit_button = exit_button
         
     def build(self):
-        self.navig = ft.NavigationDrawer(
-            controls=[
-                ft.FilledButton('Аккаунт', icon=ft.icons.ACCOUNT_BOX, on_click=self.show_settings),
-            ],
-        )
-        
         self.popup_menu = ft.PopupMenuButton(
             icon=ft.icons.PERSON_ROUNDED,
             items=[
                 ft.PopupMenuItem(icon=ft.icons.EDIT_ROUNDED, text='Учетная запись'),
-                ft.PopupMenuItem(icon=ft.icons.BOOKMARKS, text='Архив', on_click=self.open_bookmarks_page),
-                ft.PopupMenuItem(icon=ft.icons.SETTINGS_OUTLINED,  text='Настройки', on_click=self.show_settings), 
+                ft.PopupMenuItem(icon=ft.icons.BOOKMARKS, text='Архив', on_click=self.on_click_bookmarks),
+                ft.PopupMenuItem(icon=ft.icons.SETTINGS_OUTLINED,  text='Настройки', on_click=self.on_click_settings), 
                 self.exit_button             ]
         )
         
         default_size_text = ft.Row(
-            alignment=ft.MainAxisAlignment.START,
+            alignment=ft.MainAxisAlignment.CENTER,
             spacing=0,
             controls=[
                 ft.Text('T', size=16), 
@@ -36,14 +30,15 @@ class TopBar(ft.UserControl):
                     height=100, 
                     adaptive=True,
                     label='{value}%',
-                    on_change=self.slider_changed,
+                    on_change=self.on_change_slider,
                 ), 
                 ft.Text('T', size=23)
             ]
         ) 
+        
         self.settings = ft.BottomSheet(
             maintain_bottom_view_insets_padding=True,
-            on_dismiss=self.settings_dismissed,
+            on_dismiss=self.on_dismiss_settings,
             is_scroll_controlled=True,
             enable_drag=True,
             use_safe_area=True,
@@ -53,7 +48,7 @@ class TopBar(ft.UserControl):
                     spacing=0,
                     controls=[
                         ft.ListTile(
-                            trailing=ft.TextButton('Закрыть', on_click=self.close_settings),
+                            trailing=ft.TextButton('Закрыть', on_click=self.on_click_close_settings),
                             content_padding=ft.padding.only(right=10)
                         ),
                         ft.ListTile(
@@ -75,10 +70,10 @@ class TopBar(ft.UserControl):
                             )
                         ),
                         ft.ListTile(
-                            leading=ft.Text('Тема оформления:', size=17),
+                            leading=ft.Text('Тема оформления', size=17),
                             trailing=ft.Switch(
                                 
-                                on_change=self.theme_changed, 
+                                on_change=self.on_change_theme, 
                                 value=False,
                                 thumb_icon= {
                                     ft.MaterialState.SELECTED: ft.icons.DARK_MODE,
@@ -88,10 +83,10 @@ class TopBar(ft.UserControl):
                             ),     
                         ),
                         ft.ListTile(
-                            leading = ft.Text('Размер текста по-умолчанию:', size=17),
+                            leading = ft.Text('Размер текста по-умолчанию', size=17),
                             dense=True,
                         ),
-                        ft.ListTile(leading = default_size_text),
+                        ft.ListTile(dense=True, leading=default_size_text),
                         
                     ]
                 )
@@ -99,12 +94,9 @@ class TopBar(ft.UserControl):
         )
         
         return ft.Stack(
-            
             controls=[
-                
                 ft.Container(
                     padding=5,
-                    
                     bgcolor=ft.colors.SECONDARY_CONTAINER,
                     border_radius=ft.border_radius.only(top_left=30, bottom_left=30, top_right=0, bottom_right=0),
                     margin=ft.margin.only(right=0, left=7, bottom=0, top=0),
@@ -118,14 +110,12 @@ class TopBar(ft.UserControl):
                                 content=ft.Row(
                                     alignment=ft.MainAxisAlignment.START,
                                     controls=[
-                                        
                                         ft.Container(
                                             margin=0,
                                             padding=0,
                                             border_radius=360,
                                             height=60,
                                             width=60
-                                           
                                         ),
                                         ft.Text(value=self.name, size=20, weight=ft.FontWeight.BOLD)
                                     ],
@@ -143,7 +133,6 @@ class TopBar(ft.UserControl):
                         src='./assets/logo/logo.png',
                         height=70,
                         width=70,
-                        
                     ),
                 ),
             ]
@@ -154,37 +143,32 @@ class TopBar(ft.UserControl):
         self.page.client_storage.set('slider_value', 32.5)
         self.page.update()
 
-    def slider_changed(self, e):
-        e.page.client_storage.set('slider_value', e.control.value)
-        e.page.update()
-
-    def show_drawer(self, e):
-        self.page.end_drawer.open = True
-        self.page.update()
-        
-    def open_bookmarks_page(self, e):
+    def on_click_bookmarks(self, e):
         e.page.go('/bookmarks')
-        e.page.update()
+        e.page.update()     
 
-    def settings_dismissed(self, e):
-        e.page.overlay.clear()
-        e.page.update()
-
-    def show_settings(self, e:ft.TapEvent):
+    def on_click_settings(self, e):
         e.page.overlay.clear()
         e.page.overlay.append(self.settings)
         self.settings.open = True
         e.page.update()
         self.settings.update()
 
-    def close_settings(self, e):
+    def on_click_close_settings(self, e):
         e.page.overlay.clear()
         self.settings.open = False
         self.settings.update()
 
+    def on_dismiss_settings(self, e):
+        e.page.overlay.clear()
+        e.page.update()
 
-    def theme_changed(self, e):
-        if self.page.theme_mode == ft.ThemeMode.LIGHT:
+    def on_change_slider(self, e):
+        e.page.client_storage.set('slider_value', e.control.value)
+        e.page.update()
+
+    def on_change_theme(self, e):
+        if e.control.value == True:
             self.page.theme_mode = ft.ThemeMode.DARK
         else:
             self.page.theme_mode = ft.ThemeMode.LIGHT        

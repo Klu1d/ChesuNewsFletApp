@@ -12,7 +12,7 @@ class TabDisplay(ft.UserControl):
         self.page = page
         self.tab_name = tab_name
         self.firebase = firebase
-        self.news_sheet = CustomBottomSheet(pyrebase=self.firebase)
+        self.news_sheet = CustomBottomSheet(self.firebase)
 
     def build(self):
         self.show_more = ft.Container(
@@ -146,7 +146,3 @@ class TabDisplay(ft.UserControl):
         locale.setlocale(locale.LC_TIME, current_locale)
         
         return formatted_date.title()
-    
-    
-    def sort_time(self, time):
-        pass

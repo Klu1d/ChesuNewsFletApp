@@ -17,7 +17,7 @@ class Router:
             '/news': NewsView(page, firebase),
             '/bookmarks': BookmarksView(page, firebase)
         }
-        self.body = ft.Container(content=self.routes['/']['view'])
+        self.body = ft.Container(content=self.routes['/news']['view'])
         
     def route_change(self, route: ft.RouteChangeEvent):
         self.preloader(True)
@@ -37,8 +37,7 @@ class Router:
     def view_pop(self, view: ft.ViewPopEvent):
         view.page.views.pop()
         top_view = view.page.views[-1]
-        view.page.go(top_view.route)
-        
+        view.page.go(top_view.route)  
 
     def on_load_client_storage(self, firebase):
         self.page.client_storage.set('theme', 'light')
