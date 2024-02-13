@@ -1,12 +1,16 @@
 import flet as ft
-
+import pyrebase
 def IndexView(page, firebase=None):
-    def on_load():
+    def on_load_index():
         try:
             if firebase.check_token():
                 page.go('/news')
-        except Exception as e:
-            print('IndexView: ', e)
+        except pyrebase.pyrebase.HTTPError as e:
+            if e.response.status_code == 401:
+                print("Ошибка аутентификации: Неверный токен или отсутствует аутентификация")
+            else:
+                print(f"Произошла ошибка HTTP: {e.response.status_code}")
+            return []
 
     def handle_sign_in_error():
         page.snack_bar = ft.SnackBar(
@@ -63,25 +67,24 @@ def IndexView(page, firebase=None):
     sign_in_without = ft.TextButton('Войти без аккаунта', on_click=handle_sign_in_anonymous)
     info = ft.IconButton(ft.icons.INFO_OUTLINE_ROUNDED, on_click=open_dlg_modal)
     
-    
     dlg_modal = ft.AlertDialog(
-        
         modal=True,
         adaptive=True,
-        title=ft.Text('Важная информация!'),
+        title=ft.Text('Важная информация о вашем статусе'),
         content=ft.Column(scroll='hidden',
             controls=[
-                ft.Text('"Войти без аккаунта" — означает что вы можете пользоваться \
-                        приложением без необходимости процесса регистрации. Что дает\
-                        возможность просматривать текущие события в университете\n\nНо\
-                        при наличии аккаунта в системе вы приобретаете особые регалии \
-                        позволяющие взаимодействовать как с приложением, так и университетом', 
-                        text_align='start')]),
+                ft.Text(
+                    'Хотим обратить ваше внимание на то, что войдя в приложение анонимно, ' +
+                    'вы можете пользоваться базовыми функциями, но у вас нет доступа ' +
+                    'ко всем возможностям и преимуществам, которые предоставляет регистрация.\n\n' +
+                    'Зарегистрированные пользователи имеют доступ к персонализированным настройкам,' +
+                    'сохранению данных и предпочтений, а также к расширенным функциям приложения. ',
+                 
+                    text_align='start')]),
         actions=[ft.TextButton('Хорошо!', on_click=close_dlg)],
-        actions_alignment=ft.MainAxisAlignment.END,
     )
     
-    myPage = ft.Column(
+    index_view = ft.Column(
         data='index',
         expand=True,
         controls=[
@@ -115,6 +118,7 @@ def IndexView(page, firebase=None):
                                 ),
                             ),
                             ft.Row([sign_in_without, info],
+                                spacing=0,
                                 alignment=ft.MainAxisAlignment.CENTER),
                         ]
                     )
@@ -124,6 +128,6 @@ def IndexView(page, firebase=None):
     )
     
     return {
-        'view':myPage,
-        'load': on_load
-        }
+        'view':index_view,
+        'load': on_load_index
+    }

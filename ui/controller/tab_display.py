@@ -39,16 +39,14 @@ class TabDisplay(ft.UserControl):
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER, 
                 controls=[
                     ft.CircleAvatar(
-                        radius=52.5,
+                        radius=47.5,
                         bgcolor=ft.colors.with_opacity(0.3, ft.colors.GREY), 
-                        content=ft.Icon(ft.icons.SPEAKER_NOTES_OFF_OUTLINED, size=50)
+                        content=ft.Icon(ft.icons.SPEAKER_NOTES_OFF_OUTLINED, size=45)
                     ),
                     ft.Text(value='В разделе пока тишина.', size=18)
                 ]
             )
-        )
-        
-        
+        )        
         
         news = self.firebase.get_news(self.tab_name) if self.tab_name != 'Новости' else self.firebase.get_news()        
         self.list_news = self.create_board_news(news)
@@ -60,7 +58,6 @@ class TabDisplay(ft.UserControl):
         else:
             self.part_list = self.list_news if self.list_news != None else []
         
-    
         self.tab_content = ft.ListView(expand=True, padding=ft.padding.only(bottom=10), controls=self.part_list, spacing=10)
         
         return self.tab_content if self.tab_content.controls != [] else self.empty

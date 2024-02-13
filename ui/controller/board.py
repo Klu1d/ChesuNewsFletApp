@@ -248,10 +248,12 @@ class Board(ft.UserControl):
         self.news_sheet.content.content.controls[1].content.controls = [
             ft.Container(
                 padding=ft.padding.only(top=5, left=15, right=15, bottom=0),
-                content=ft.Text(
-                    size=20,
-                    weight=ft.FontWeight.BOLD, 
-                    value=news["headline"], 
+                content=ft.SelectionArea(
+                    content=ft.Text(
+                        size=20,
+                        weight=ft.FontWeight.BOLD, 
+                        value=news["headline"], 
+                    )
                 )
             ),
             ft.Container(
@@ -261,7 +263,7 @@ class Board(ft.UserControl):
             ),
             Carousel(images=[linq for linq in news["images"]]),
             ft.Container(
-                content=ft.Text(news["text"], size=16),
+                content=ft.SelectionArea(ft.Text(news["text"], size=16)),
                 padding=ft.padding.only(top=0, left=15, right=15, bottom=5),
             ),
             ft.Divider(height=3, color=ft.colors.SECONDARY_CONTAINER),
@@ -272,7 +274,6 @@ class Board(ft.UserControl):
                     controls=[ft.OutlinedButton(
                         tag,
                         style = ft.ButtonStyle(
-                            
                             color=ft.colors.ON_SECONDARY_CONTAINER,
                             shape=ft.RoundedRectangleBorder(radius=3),
                             bgcolor=ft.colors.BACKGROUND,

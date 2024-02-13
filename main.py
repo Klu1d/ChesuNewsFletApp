@@ -11,17 +11,23 @@ def main(page: ft.Page):
     page.window_top = 120
     page.padding = 0
     page.update()
+    page.fonts = {
+        "Kanit": "https://raw.githubusercontent.com/google/fonts/master/ofl/kanit/Kanit-Bold.ttf",
+        "Aleo Bold Italic": "https://raw.githubusercontent.com/google/fonts/master/ofl/aleo/Aleo-BoldItalic.ttf",
+        "PTSerif": "./assets/font/PTSerif-Bold.ttf",
+        "Oswald":"./assets/font/Oswald.ttf",
+        "Spaceland":"./assets/font/Spaceland.ttf",
+    }
     page.theme = ft.Theme(
-            visual_density=ft.ThemeVisualDensity.COMPACT,
-            color_scheme_seed=ft.colors.GREEN,
-            font_family="Museo",
-            color_scheme=ft.ColorScheme(
-                primary=ft.colors.GREEN,
-                on_primary=ft.colors.GREY_50,
-                primary_container=ft.colors.WHITE,
-            ),
-        )
-    
+        visual_density=ft.ThemeVisualDensity.COMPACT,
+        color_scheme_seed=ft.colors.TEAL_800,  # Темно-бирюзовый как цветовой акцент
+        font_family="PTSerif",  # Изменяем шрифт на Montserrat
+        color_scheme=ft.ColorScheme(
+            primary=ft.colors.TEAL_800,  # Основной цвет - темно-бирюзовый
+            on_primary=ft.colors.GREY_50,  # Светлый серый для текста на темно-бирюзовом фоне
+            primary_container=ft.colors.GREY_200,  # Светло-серый для контейнеров
+        ),
+    )
     page.theme.page_transitions.ios = ft.PageTransitionTheme.CUPERTINO
     page.theme.page_transitions.android = ft.PageTransitionTheme.OPEN_UPWARDS
     page.theme.page_transitions.macos = ft.PageTransitionTheme.FADE_UPWARDS

@@ -1,19 +1,20 @@
 import flet as ft
 
 class TopBar(ft.UserControl):
-    def __init__(self, name='Chesu.news', exit_button=''):
+    def __init__(self, title='.news', exit_button=''):
         super().__init__()
-        self.name = name
+        self.title = title
         self.exit_button = exit_button
         
     def build(self):
         self.popup_menu = ft.PopupMenuButton(
-            icon=ft.icons.PERSON_ROUNDED,
+            icon=ft.icons.HOME_FILLED,
             items=[
-                ft.PopupMenuItem(icon=ft.icons.EDIT_ROUNDED, text='Учетная запись'),
-                ft.PopupMenuItem(icon=ft.icons.BOOKMARKS, text='Архив', on_click=self.on_click_bookmarks),
-                ft.PopupMenuItem(icon=ft.icons.SETTINGS_OUTLINED,  text='Настройки', on_click=self.on_click_settings), 
-                self.exit_button             ]
+                ft.PopupMenuItem(icon=ft.icons.ACCOUNT_CIRCLE, text='Учетная запись', on_click=self.on_click_account),
+                ft.PopupMenuItem(icon=ft.icons.BOOKMARKS, text='Избранное', on_click=self.on_click_bookmarks),
+                ft.PopupMenuItem(icon=ft.icons.SETTINGS_ROUNDED,  text='Настройки', on_click=self.on_click_settings), 
+                self.exit_button
+            ]
         )
         
         default_size_text = ft.Row(
@@ -62,6 +63,7 @@ class TopBar(ft.UserControl):
                         ft.ListTile(
                             leading=ft.Text('Уведомления', size=17),
                             trailing=ft.Switch(
+                                adaptive=True,
                                 value=False,
                                 thumb_icon= {
                                     ft.MaterialState.SELECTED: ft.icons.CHECK,
@@ -72,7 +74,7 @@ class TopBar(ft.UserControl):
                         ft.ListTile(
                             leading=ft.Text('Тема оформления', size=17),
                             trailing=ft.Switch(
-                                
+                                adaptive=True,
                                 on_change=self.on_change_theme, 
                                 value=False,
                                 thumb_icon= {
@@ -93,49 +95,33 @@ class TopBar(ft.UserControl):
             )
         )
         
-        return ft.Stack(
-            controls=[
-                ft.Container(
-                    padding=5,
-                    bgcolor=ft.colors.SECONDARY_CONTAINER,
-                    border_radius=ft.border_radius.only(top_left=30, bottom_left=30, top_right=0, bottom_right=0),
-                    margin=ft.margin.only(right=0, left=7, bottom=0, top=0),
-                    content=ft.Row(
-                        spacing=0,
-                        controls=[
-                            ft.Container(
-                                margin=0,
-                                padding=0,
-                                expand=1,
-                                content=ft.Row(
-                                    alignment=ft.MainAxisAlignment.START,
-                                    controls=[
-                                        ft.Container(
-                                            margin=0,
-                                            padding=0,
-                                            border_radius=360,
-                                            height=60,
-                                            width=60
-                                        ),
-                                        ft.Text(value=self.name, size=20, weight=ft.FontWeight.BOLD)
-                                    ],
-                                ),
-                            ),
-                            ft.Badge(content=ft.IconButton(ft.icons.NOTIFICATIONS), text='23', alignment=ft.alignment.Alignment(0.4, -0.5)),
-                            self.popup_menu,
-                        ]
+        return ft.Container(
+            content=ft.Row(
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                controls=[
+                    ft.Container(
+                        margin=ft.margin.only(left=15),
+                        content=ft.Row(
+                            spacing=0,
+                            controls=[
+                                ft.Image(src='./assets/logo/logo.png',height=40, width=40),
+                                ft.Text(value=self.title, size=27, weight=ft.FontWeight.BOLD),
+                            ]
+                        ),
                     ),
-                ),
-                ft.Container(
-                    margin=0,
-                    padding=0,
-                    content=ft.Image(
-                        src='./assets/logo/logo.png',
-                        height=70,
-                        width=70,
-                    ),
-                ),
-            ]
+                    ft.Container(
+                        margin=ft.margin.only(right=10),
+                        border_radius=15,
+                        content=ft.Row(
+                            spacing=2,
+                            controls=[
+                                ft.Badge(content=ft.IconButton(ft.icons.NOTIFICATIONS, icon_color=ft.colors.ON_SECONDARY_CONTAINER), text='23', alignment=ft.alignment.Alignment(0.4, -0.5)),
+                                self.popup_menu,
+                            ]
+                        )
+                    )
+                ]
+            )
         )
 
     def did_mount(self):
@@ -143,6 +129,10 @@ class TopBar(ft.UserControl):
         self.page.client_storage.set('slider_value', 32.5)
         self.page.update()
 
+    def on_click_account(self, e):
+        e.page.go('/account')
+        e.page.update()
+    
     def on_click_bookmarks(self, e):
         e.page.go('/bookmarks')
         e.page.update()     

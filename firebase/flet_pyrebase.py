@@ -84,6 +84,7 @@ class PyrebaseWrapper:
             return list(bookmarks)
         else:
             return []
+    
     def check_bookmark(self, bookmarks):
         return self.db.child('users').child(self.uuid).child('bookmarks').get(token=self.idToken).val()
 
@@ -139,7 +140,6 @@ class PyrebaseWrapper:
                 continue
         return list_items[::-1] if list_items != [] else None
     
-
     @dispatch(str)
     def get_news(self, tag: str):
         list_items = []
@@ -164,16 +164,6 @@ class PyrebaseWrapper:
         stream = self.db.child('users').child(self.uuid).child('notes').stream(stream_handler=stream_handler, token=self.idToken)
         self.streams_1.append(stream)
     
-    def add_note(self, data):
-        if self.uuid == None:
-            self.uuid = self.auth.get_account_info(self.idToken)['users'][0]['localId']
-        self.db.child('users').child(self.uuid).child('notes').push(data, self.idToken)
-
-    def get_notes(self):
-        return self.db.child('users').child(self.uuid).get(token=self.idToken).val()
-
-    def delete_note(self, note_uuid):
-        self.db.child('users').child(self.uuid).child('notes').child(note_uuid).remove(token=self.idToken)
 
     def kill_all_streams(self):
         for stream in self.streams_1:

@@ -11,8 +11,10 @@ def NewsView(page, firebase):
         build_tabs()
         page.update()
 
-    def on_page_load():
+    def on_load_news():
         if firebase.check_token() == 'Success':
+            news_view.controls[1] = page_shimmer
+            page.update()
             firebase.stream_data(handle_stream)
             page.update()
 
@@ -69,20 +71,20 @@ def NewsView(page, firebase):
         page.update()
         
     def on_load_tab_content(index):
-        page.client_storage.set('current_index_tab', index)
         current_tab = all_tabs[index]
         full_name = page.client_storage.get('tabs')[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
-        
         if current_tab.content.data == 'shimmer':
             current_tab.content.data = 'content'
             current_tab.content=TabDisplay(page, full_name, firebase)
-        
+            
+        page.client_storage.set('current_index_tab', index)
+        page.floating_action_button.visible = True if current_tab.tab_content.value == 'Анонсы' else False
         page.overlay.clear()
         page.update()
-    
+        
     def build_tabs():
         all_tabs.clear()
-        shimmer = CustomShimmer(height=page.window_height, first_big=True)
+        shimmer = CustomShimmer(height=page.window_height, first_big=True, tabs=False)
         for abbreviature in page.client_storage.get('tabs').keys():
             all_tabs.append(
                 ft.Tab(
@@ -93,14 +95,14 @@ def NewsView(page, firebase):
                     ),
                     content=ft.Container(
                         data='shimmer', 
-                        padding=ft.padding.only(left=15, right=15), 
+                        padding=ft.padding.only(left=15, right=15),
+                        content=shimmer
+                        
                         
                     )
                 ),
             )
-        
-        page.update() 
-        
+       
         for i, category in enumerate(all_tabs):
             categories.content.content.controls.append(
                 ft.Container(
@@ -118,20 +120,35 @@ def NewsView(page, firebase):
                     )
                 ),
             )
-        page.update()
-        
+
+        news_view.controls[1] = ft.Stack(
+            expand=True,
+            controls=[tabs, button_categories]
+        )
         on_load_tab_content(tabs.selected_index)
 
     def clean_tabs():
         all_tabs.clear()
         page.update()
 
+    page.floating_action_button = ft.FloatingActionButton(
+        visible=False,
+        bgcolor=ft.colors.TERTIARY_CONTAINER,
+        shape=ft.RoundedRectangleBorder(radius=5),
+        width=100,
+        mini=True,
+        content=ft.Row(
+            [ft.Icon(ft.icons.POST_ADD), ft.Text("Создать")], alignment="center", spacing=3
+        ),
+        on_click=lambda _: page.go('/announce')
+    )
+    
     logout_button = ft.TextButton('Выйти', on_click=handle_logout, style=ft.ButtonStyle(ft.colors.RED))
     all_tabs = []
-    
+
     tabs = ft.Tabs(
         expand=1,
-        selected_index=0,
+        selected_index=1,
         indicator_padding=10,
         animation_duration=600,
         indicator_border_radius=15,
@@ -162,7 +179,6 @@ def NewsView(page, firebase):
         ),
     ) 
     categories = ft.BottomSheet(
-        
         open=True,
         enable_drag=True,
         show_drag_handle=True,
@@ -179,24 +195,19 @@ def NewsView(page, firebase):
         ),
     )
 
-    myPage = ft.Column(
+    page_shimmer = CustomShimmer(height=page.window_height, first_big=True, tabs=True)
+    news_view = ft.Column(
         data='news',
         spacing=0,
         controls=[
             #ft.ProgressBar(value=None, bgcolor=ft.colors.ON_SECONDARY),
             TopBar(exit_button=ft.PopupMenuItem(icon=ft.icons.EXIT_TO_APP, text='выйти', on_click=handle_logout)),
-            ft.Stack(
-                expand=True,
-                controls=[
-                    tabs,
-                    button_categories,
-                ]
-            )
+            page_shimmer
         ],
     )
-            
+    
     return {
-        'view': myPage,
-        'load': on_page_load
+        'view': news_view,
+        'load': on_load_news,
     }
 
