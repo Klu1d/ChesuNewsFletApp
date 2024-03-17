@@ -1,20 +1,23 @@
-import flet as ft
 import pyrebase
+import flet as ft
+
+
 def IndexView(page, firebase=None):
     def on_load_index():
         try:
             if firebase.check_token():
                 page.go('/news')
+        except pyrebase.pyrebase.requests.exceptions.ConnectionError:
+            handle_sign_in_error('Не соединения с интернетом')
         except pyrebase.pyrebase.HTTPError as e:
-            if e.response.status_code == 401:
-                print("Ошибка аутентификации: Неверный токен или отсутствует аутентификация")
-            else:
-                print(f"Произошла ошибка HTTP: {e.response.status_code}")
-            return []
+            print('Ошибка при входе пользователя: ', e)
+            
+            page.update()
+            #return [] потом убрать комент и оставить return !напоминание
 
-    def handle_sign_in_error():
+    def handle_sign_in_error(text='Неправильный логин или пароль'):
         page.snack_bar = ft.SnackBar(
-            content=ft.Text('Неправильный логин или пароль', color=ft.colors.WHITE),
+            content=ft.Text(text, color=ft.colors.WHITE),
             bgcolor=ft.colors.RED,
             behavior=ft.SnackBarBehavior.FLOATING,
         )
@@ -26,20 +29,29 @@ def IndexView(page, firebase=None):
             firebase.sign_in(email.value, password.value)
             password.value = ''
             page.go('/news')
-        except Exception as e:
-            print('User IndexView: ', e)
+        except pyrebase.pyrebase.requests.exceptions.ConnectionError:
+            handle_sign_in_error('Нет соединения с интернетом')
+        except pyrebase.pyrebase.HTTPError as e:
+            print('Неправильный логин или пароль: ', e)
             handle_sign_in_error()
             page.update()
-
+    
     def handle_sign_in_anonymous(e):
-        firebase.login_in_anonymous()
-        email.value = ''
-        password.value = ''
-        page.go('/news')
-        page.update()
+        try:
+            firebase.login_in_anonymous()
+            email.value = ''
+            password.value = ''
+            page.go('/news')
+            page.update()
+        except pyrebase.pyrebase.requests.exceptions.ConnectionError:
+            handle_sign_in_error('Нет соединения с интернетом')
+        except pyrebase.pyrebase.HTTPError as e:
+            print('Ошибка HTTPError при входе анонима:', e)
+            page.update()
 
     def handle_register(e):
         page.go('/register')
+        page.update()
 
     def open_dlg_modal(e):
         page.dialog = dlg_modal
@@ -70,6 +82,7 @@ def IndexView(page, firebase=None):
     dlg_modal = ft.AlertDialog(
         modal=True,
         adaptive=True,
+        content_padding=15,
         title=ft.Text('Важная информация о вашем статусе'),
         content=ft.Column(scroll='hidden',
             controls=[
@@ -82,11 +95,28 @@ def IndexView(page, firebase=None):
                  
                     text_align='start')]),
         actions=[ft.TextButton('Хорошо!', on_click=close_dlg)],
+        actions_alignment=ft.MainAxisAlignment.END,
     )
     
+    def lll(e):
+        firebase.sign_in('7576457@mail.ru', 'hgh28hh')
+        page.go('/news')
+        page.update()
+        
+    textButton = ft.TextButton('са логини пароли', on_click=lll)
+    not_have_connect = ft.Container(
+        alignment=ft.alignment.center,
+        content=ft.Column(
+            [
+                ft.Text('Нет соединения с интернетом!'),
+                ft.ElevatedButton('Повторить попытку'),
+            ]
+        )
+        
+    )
     index_view = ft.Column(
-        data='index',
         expand=True,
+        data='index',
         controls=[
             ft.Container(
                 expand=True,
@@ -117,9 +147,10 @@ def IndexView(page, firebase=None):
                                     ),
                                 ),
                             ),
-                            ft.Row([sign_in_without, info],
+                            ft.Row([sign_in_without, info, textButton],
                                 spacing=0,
-                                alignment=ft.MainAxisAlignment.CENTER),
+                                alignment=ft.MainAxisAlignment.CENTER
+                            ),
                         ]
                     )
                 )
@@ -128,6 +159,6 @@ def IndexView(page, firebase=None):
     )
     
     return {
-        'view':index_view,
+        'view': index_view,
         'load': on_load_index
     }

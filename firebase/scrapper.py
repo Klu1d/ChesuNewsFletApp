@@ -37,7 +37,7 @@ class ChesuNews:
         
     
 
-def scrap_news(page, myPyrebase):
+def scrap_news(myPyrebase):
     tg = BeautifulSoup(requests.get("https://www.chesu.ru").text, 'lxml').find_all('a', {'class':'image'})
     new_number = int(tg[0]['href'].split('=')[1]) #Получение номера последней новости  
     print(new_number)  

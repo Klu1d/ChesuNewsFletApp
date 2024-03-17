@@ -1,14 +1,19 @@
 import sys
 import pyrebase
 
-from firebase.config import config_keys as keys
-from flet.security import encrypt, decrypt
+from enum import Enum
 from multipledispatch import dispatch
+from flet.security import encrypt, decrypt
+from firebase.config import config_keys as keys
 
 secret_key = 'sample'
 
+class Status():
+    PENDING = 'pending'
+    APPROVED = 'approved'
+    REJECTED = 'rejected'
+    
 class PyrebaseWrapper:
-
     def __init__(self, page):
         self.page = page
         self.firebase = pyrebase.initialize_app(keys)
@@ -22,8 +27,8 @@ class PyrebaseWrapper:
         # мы можем получить токен с устройства пользователя.
         self.check_token()
         
-        self.streams_1 = []
 
+        self.streams = {}
 
     def save_tokens(self, token, uuid, page):
         encrypted_token = encrypt(token, secret_key)
@@ -48,6 +53,7 @@ class PyrebaseWrapper:
         
     def sign_in(self, email, password):
         user = self.auth.sign_in_with_email_and_password(email, password)
+        
         if user:
             token = user['idToken']
             uuid = user['localId']
@@ -65,35 +71,23 @@ class PyrebaseWrapper:
             self.save_tokens(token, uuid, self.page)
 
     def check_token(self):
-        encrypted_token = self.page.client_storage.get('firebase_token')
-        uuid = self.page.client_storage.get('firebase_id')
-        if encrypted_token:
-            decrypted_token = decrypt(encrypted_token, secret_key)
-            self.idToken = decrypted_token
-            self.uuid = uuid
-            try:
-                self.auth.get_account_info(self.idToken)
-                return 'Success'
-            except:
-                return None
-        return None
+        try:
+            encrypted_token = self.page.client_storage.get('firebase_token')
+            uuid = self.page.client_storage.get('firebase_id')
+            if encrypted_token:
+                decrypted_token = decrypt(encrypted_token, secret_key)
+                self.idToken = decrypted_token
+                self.uuid = uuid
+                try:
+                    self.auth.get_account_info(self.idToken)
+                    return 'Success'
+                except:
+                    return None
+            return None
+        except TimeoutError as e:
+            print('Pyrebase check token: ', e)
+            return None
 
-    def get_bookmarks(self):
-        bookmarks = self.db.child('users').child(self.uuid).child('bookmarks').get(token=self.idToken).val()
-        if bookmarks:
-            return list(bookmarks)
-        else:
-            return []
-    
-    def check_bookmark(self, bookmarks):
-        return self.db.child('users').child(self.uuid).child('bookmarks').get(token=self.idToken).val()
-
-    def set_bookmark(self, bookmarks: list):
-        self.db.child('users').child(self.uuid).child('bookmarks').child().set(token=self.idToken, data=bookmarks)
-
-    def del_bookmark(self, id_news):
-        self.db.child('users').child(self.uuid).child('bookmarks').remove(id_news)
-    
     def set_news(self, id: int, datetime: str, headline: str, text: str, images: list, tags: list):
         data_to_upload = {
             'id':id,
@@ -111,7 +105,7 @@ class PyrebaseWrapper:
         role = self.db.child('users').child(self.uuid).child('role').get(token=self.idToken).val()
         if firstname == None:
             average = int(len(self.uuid) / 2)
-            return self.uuid[:average], self.uuid[average:], 'Анонимный пользователь' 
+            return self.uuid[:average], self.uuid[average:], 'Аноним' 
         return firstname, lastname, role
     
     def get_users_tabs(self):
@@ -152,6 +146,126 @@ class PyrebaseWrapper:
         
         return list_items[::-1] if list_items != [] else None
     
+    """Работа с AnnounceView"""
+    def create_announcement(
+        self, announce_id, 
+        headline, text, 
+        place, datetime, 
+        role, username, 
+        image=None, 
+        status='local'
+    ):
+        data_to_upload = {
+            'status': status,
+            'announce_id': announce_id,
+            'headline': headline,
+            'datetime': datetime,
+            'username': username,
+            'image': image,
+            'place': place,
+            'text': text,
+            'role': role,
+        }
+        self.db.child('users').child(self.uuid).child('announcements').child(announce_id).set(data_to_upload, token=self.idToken)
+    
+    def send_announcement(
+        self, announce_id, 
+        headline, text, 
+        place, datetime, 
+        role, username, 
+        image=None, 
+        status=Status.PENDING
+    ):
+        data_to_upload = {
+            'content':{
+                'announce_id': announce_id,
+                'headline': headline,
+                'datetime': datetime,
+                'username': username,
+                'image': image,
+                'place': place,
+                'text': text,
+                'role': role,
+            },
+            'status':status,
+        }
+        self.db.child('moderations').child(self.uuid).child(announce_id).set(data_to_upload, token=self.idToken)
+        self.db.child('users').child(self.uuid).child('announcements').child(announce_id).update({'status': Status.PENDING}, token=self.idToken)
+    
+    def change_status_announce(self, id, new_status, user_id=None):
+        try:
+            if not user_id:
+                self.db.child('users').child(self.uuid).child('announcements').child(id).child('status').set(new_status, token=self.idToken)
+            else:
+                self.db.child('users').child(user_id).child('announcements').child(id).child('status').set(new_status, token=self.idToken)
+        except pyrebase.pyrebase.HTTPError as e:
+            print('Нет такого пользователя: ', e)
+    
+    def cancel_send_announcement(self, announce_id):
+        pass
+            
+    def delete_announcement(self, announce_id):
+        self.db.child('users').child(self.uuid).child('announcements').child(announce_id).remove(token=self.idToken)
+        
+    def publish_announcement(
+        self, announce_id, 
+        headline, text, 
+        place, datetime, 
+        role, username, 
+        image=None, 
+    ):
+        data_to_upload = {
+            'announce_id': announce_id,
+            'headline': headline,
+            'datetime': datetime,
+            'username': username,
+            'image': image,
+            'place': place,
+            'text': text,
+            'role': role,
+            'attendees':0,
+            'count_attendees':0
+        }
+        self.db.child('chesu').child('announcements').child(announce_id).set(data_to_upload, token=self.idToken)
+
+    def stream_public_announcements(self, stream_handler):
+        stream = self.db.child('chesu').child('announcements').stream(stream_handler=stream_handler, stream_id='public', token=self.idToken)
+        self.streams['public'] = stream
+
+        
+    def stream_user_draft_announcements(self, stream_handler):
+        stream = self.db.child('users').child(self.uuid).child('announcements').stream(stream_handler=stream_handler, stream_id='users', token=self.idToken)
+        self.streams['users'] = stream
+        
+
+    def stream_moderation_decisions(self):
+        status = self.db.child("moderations").stream(stream_handler=self.status_card_update, stream_id='moderator',token=self.idToken)
+        self.streams['moderator'] = status
+
+    def status_card_update(self, event):
+        if event['data'] != None:
+            if event['event'] == 'put':
+                if isinstance(event['data'], str):
+                    elements = list(filter(None, event['path'].split("/")))
+                    self.db.child("users").child(elements[0]).child('announcements').child(elements[1]).update({'status': event['data']}, token=self.idToken)
+
+    """Работа с BookmarksView"""
+    def get_bookmarks(self):
+        bookmarks = self.db.child('users').child(self.uuid).child('bookmarks').get(token=self.idToken).val()
+        if bookmarks:
+            return list(bookmarks)
+        else:
+            return []
+
+    def check_bookmark(self, bookmarks):
+        return self.db.child('users').child(self.uuid).child('bookmarks').get(token=self.idToken).val()
+
+    def set_bookmark(self, bookmarks: list):
+        self.db.child('users').child(self.uuid).child('bookmarks').child().set(token=self.idToken, data=bookmarks)
+
+    def del_bookmark(self, id_news):
+        self.db.child('users').child(self.uuid).child('bookmarks').remove(id_news)
+
     def account_info(self):
         user = self.auth.get_account_info(self.idToken)
         return user['users'][0]
@@ -160,16 +274,13 @@ class PyrebaseWrapper:
         user = self.auth.get_account_info(self.idToken)
         return user['users'][0].__contains__('email')
     
-    def stream_data(self, stream_handler):
-        stream = self.db.child('users').child(self.uuid).child('notes').stream(stream_handler=stream_handler, token=self.idToken)
-        self.streams_1.append(stream)
-    
-
     def kill_all_streams(self):
-        for stream in self.streams_1:
-            try:
-                stream.close()
-            except:
-                print('no streams')
+        try:
+            if self.streams:
+                for stream in self.streams.values():
+                    stream.close()
+                self.streams.clear()  # Очищаем словарь потоков после их закрытия
+        except Exception as e:
+            print('Error while closing streams:', e)
 
 

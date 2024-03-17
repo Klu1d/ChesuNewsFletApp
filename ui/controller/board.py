@@ -13,7 +13,6 @@ class Board(ft.UserControl):
         return ft.Container(
             key=str(number),
             data=time,
-            
             visible=vision,
             ink=opacity,
             height=100,
@@ -330,8 +329,10 @@ class Board(ft.UserControl):
                 
             )
         )
-     
-        self.news_sheet.content.content.controls[0].content.controls.insert(1, text_size_slider) if checkif == 55 else self.news_sheet.content.content.controls[0].content.controls.pop()
+        if checkif == 55:
+            self.news_sheet.content.content.controls[0].content.controls.insert(1, text_size_slider) 
+        else:
+            self.news_sheet.content.content.controls[0].content.controls.pop()
         self.news_sheet.update()
         
     def on_change_slider(self, e):
@@ -342,23 +343,24 @@ class Board(ft.UserControl):
             value = e.control.value
         match value:
             case 100:
-                self.news_sheet.content.content.controls[1].content.controls[0].content.size = 35
+                
+                self.news_sheet.content.content.controls[1].content.controls[0].content.content.size = 35
                 self.news_sheet.content.content.controls[1].content.controls[1].content.size = 29
                 self.news_sheet.content.content.controls[1].content.controls[3].content.size = 31
             case 77.5:
-                self.news_sheet.content.content.controls[1].content.controls[0].content.size = 30
+                self.news_sheet.content.content.controls[1].content.controls[0].content.content.size = 30
                 self.news_sheet.content.content.controls[1].content.controls[1].content.size = 24
                 self.news_sheet.content.content.controls[1].content.controls[3].content.size = 26
             case 55.0:
-                self.news_sheet.content.content.controls[1].content.controls[0].content.size = 26
+                self.news_sheet.content.content.controls[1].content.controls[0].content.content.size = 26
                 self.news_sheet.content.content.controls[1].content.controls[1].content.size = 20
                 self.news_sheet.content.content.controls[1].content.controls[3].content.size = 22
             case 32.5:
-                self.news_sheet.content.content.controls[1].content.controls[0].content.size = 20
+                self.news_sheet.content.content.controls[1].content.controls[0].content.content.size = 20
                 self.news_sheet.content.content.controls[1].content.controls[1].content.size = 14
                 self.news_sheet.content.content.controls[1].content.controls[3].content.size = 16
             case 10:
-                self.news_sheet.content.content.controls[1].content.controls[0].content.size = 15
+                self.news_sheet.content.content.controls[1].content.controls[0].content.content.size = 15
                 self.news_sheet.content.content.controls[1].content.controls[1].content.size = 9
                 self.news_sheet.content.content.controls[1].content.controls[3].content.size = 11
                 

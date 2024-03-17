@@ -1,6 +1,6 @@
-from datetime import datetime
 import locale
 import flet as ft
+from datetime import datetime
 
 from ui.controller.board import Board 
 from ui.widgets.custom_bottom_sheet import CustomBottomSheet
@@ -12,7 +12,10 @@ class TabDisplay(ft.UserControl):
         self.page = page
         self.tab_name = tab_name
         self.firebase = firebase
+        self.tab_content = ft.ListView(expand=True, padding=ft.padding.only(bottom=10), spacing=10)
+        self.empty_icon_visible = True
         self.news_sheet = CustomBottomSheet(self.firebase)
+        
 
     def build(self):
         self.show_more = ft.Container(
@@ -31,7 +34,7 @@ class TabDisplay(ft.UserControl):
             )
         )
         self.empty = ft.Container(
-            data='empty',
+            visible=self.empty_icon_visible,
             alignment=ft.alignment.center,
             content=ft.Column(
                 scroll=None,
@@ -46,9 +49,9 @@ class TabDisplay(ft.UserControl):
                     ft.Text(value='В разделе пока тишина.', size=18)
                 ]
             )
-        )        
+        )     
         
-        news = self.firebase.get_news(self.tab_name) if self.tab_name != 'Новости' else self.firebase.get_news()        
+        news = self.firebase.get_news(self.tab_name) if self.tab_name != 'Новости' else self.firebase.get_news() 
         self.list_news = self.create_board_news(news)
         self.part_list = ''
         
@@ -58,8 +61,7 @@ class TabDisplay(ft.UserControl):
         else:
             self.part_list = self.list_news if self.list_news != None else []
         
-        self.tab_content = ft.ListView(expand=True, padding=ft.padding.only(bottom=10), controls=self.part_list, spacing=10)
-        
+        self.tab_content.controls=self.part_list
         return self.tab_content if self.tab_content.controls != [] else self.empty
 
     def on_click_show_more(self, e):

@@ -98,7 +98,7 @@ def BookmarksView(page, firebase):
             checkbox.controls[1].visible = True
             
         bookmark_view.controls[2].height = 67
-        bookmark_view.controls[0].title.visible = False
+        #bookmark_view.controls[0].title.visible = False
         bookmark_view.controls[0].leading = ft.TextButton('Выбрать все', on_click=on_click_chooce_all)
         bookmark_view.controls[0].leading_width = 115
         page.update()
@@ -201,7 +201,6 @@ def BookmarksView(page, firebase):
         vertical_alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         padding=0,
-        
         controls=[
             ft.AppBar(
                 center_title=True,
@@ -219,8 +218,6 @@ def BookmarksView(page, firebase):
                 height=0,
                 content=button_remove_favorites,
                 animate_size=ft.animation.Animation(400, "decelerate"),
-                
-                
             )
         ] 
     )

@@ -1,19 +1,19 @@
 import flet as ft
 
 class TopBar(ft.UserControl):
-    def __init__(self, title='.news', exit_button=''):
+    def __init__(self, title='.news', exit_button=None):
         super().__init__()
         self.title = title
         self.exit_button = exit_button
         
     def build(self):
         self.popup_menu = ft.PopupMenuButton(
-            icon=ft.icons.HOME_FILLED,
+            content=ft.Container(ft.Icon(ft.icons.HOME_FILLED, color=ft.colors.ON_SECONDARY_CONTAINER), border_radius=15, margin=10),
             items=[
-                ft.PopupMenuItem(icon=ft.icons.ACCOUNT_CIRCLE, text='Учетная запись', on_click=self.on_click_account),
-                ft.PopupMenuItem(icon=ft.icons.BOOKMARKS, text='Избранное', on_click=self.on_click_bookmarks),
-                ft.PopupMenuItem(icon=ft.icons.SETTINGS_ROUNDED,  text='Настройки', on_click=self.on_click_settings), 
-                self.exit_button
+                ft.PopupMenuItem(content=ft.Row([ft.Icon(ft.icons.ACCOUNT_CIRCLE, color=ft.colors.ON_SECONDARY_CONTAINER), ft.Text('Учетная запись')]), on_click=self.on_click_account),
+                ft.PopupMenuItem(content=ft.Row([ft.Icon(ft.icons.BOOKMARKS, color=ft.colors.ON_SECONDARY_CONTAINER), ft.Text('Избранное')]), on_click=self.on_click_bookmarks),
+                ft.PopupMenuItem(content=ft.Row([ft.Icon(ft.icons.SETTINGS_ROUNDED, color=ft.colors.ON_SECONDARY_CONTAINER), ft.Text('Настройки')]), on_click=self.on_click_settings),
+                ft.PopupMenuItem(content=ft.Row([ft.Icon(ft.icons.EXIT_TO_APP_ROUNDED, color=ft.colors.ON_SECONDARY_CONTAINER), ft.Text('Выйти')]), on_click=self.exit_button),
             ]
         )
         
@@ -104,7 +104,7 @@ class TopBar(ft.UserControl):
                         content=ft.Row(
                             spacing=0,
                             controls=[
-                                ft.Image(src='./assets/logo/logo.png',height=40, width=40),
+                                ft.Image(src='/home/mark/Разработка/Chesu.news/assets/images/logo.png', height=40, width=40),
                                 ft.Text(value=self.title, size=27, weight=ft.FontWeight.BOLD),
                             ]
                         ),
