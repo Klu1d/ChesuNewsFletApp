@@ -33,7 +33,7 @@ class Router:
                 self.on_load_client_storage(self.firebase)
             elif route.route == '':
                 print('Да дошел')
-                self.routes['/news'].get('load_tab')(1)
+                self.routes['/news'].get('load_tab')(self.page.client_storage.get('current_index_tab'))
                 self.page.update()
                 
             if route.route in self.additional_views:

@@ -8,7 +8,7 @@ from firebase.scrapper import scrap_news
 
 def main(page: ft.Page):
    
-    page.window_width, page.window_height = 475, 1150
+    page.window_width, page.window_height = 445, 930
     page.window_left = 10
     page.window_top = 120
     page.padding = 0
@@ -46,6 +46,6 @@ def main(page: ft.Page):
     page.go('/')
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir='assets')
+    ft.app(target=main)
 
 

@@ -68,16 +68,18 @@ def NewsView(page: ft.Page, firebase: PyrebaseWrapper):
     def on_load_tab_content(index):
         current_tab = all_tabs[index]
         full_name = page.client_storage.get('tabs')[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
-        
+        print(current_tab.tab_content.value)
         if current_tab.content.data == 'shimmer' and current_tab.tab_content.value != 'Анонсы':
             current_tab.content.data = 'content'
             current_tab.content=TabDisplay(page, full_name, firebase)
-        elif current_tab.tab_content.value == 'Анонсы':
+
+        if current_tab.tab_content.value == 'Анонсы':
             page.floating_action_button.visible = True
-            firebase.stream_public_announcements(announcements)
-            firebase.streams['public'].close
+            # firebase.stream_public_announcements(announcements)
+            # firebase.streams['public'].close
         else:
             page.floating_action_button.visible = False
+
             
         page.client_storage.set('current_index_tab', index)
         page.overlay.clear()

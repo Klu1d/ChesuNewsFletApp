@@ -13,7 +13,6 @@ def AccountView(page: ft.Page, firebase: PyrebaseWrapper):
     def build():
         pass
     
-    
     def handle_logout(*e):
         firebase.kill_all_streams()
         firebase.sign_out()

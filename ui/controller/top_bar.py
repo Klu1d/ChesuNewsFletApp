@@ -104,7 +104,7 @@ class TopBar(ft.UserControl):
                         content=ft.Row(
                             spacing=0,
                             controls=[
-                                ft.Image(src='/home/mark/Разработка/Chesu.news/assets/images/logo.png', height=40, width=40),
+                                ft.Image(src='./images/logo.png', height=40, width=40),
                                 ft.Text(value=self.title, size=27, weight=ft.FontWeight.BOLD),
                             ]
                         ),
