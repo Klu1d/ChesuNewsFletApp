@@ -120,14 +120,15 @@ class PyrebaseWrapper:
                     return 'Success'
                 except:
                     print('Токен устарел, идет процесс обновления')
-                    new_token = self.refresh_user_token(self.idToken)
-                    if new_token:
-                        print('Токен обновлен')
-                        self.idToken = new_token
-                        self.save_tokens(new_token, self.uuid, self.page)
-                        return 'Success'
-                    else:
-                        print('Токен недействителен, требуется аутентификация')
+                    self.page.update()
+                    # new_token = self.refresh_user_token(self.idToken)
+                    # if new_token:
+                    #     print('Токен обновлен')
+                    #     self.idToken = new_token
+                    #     self.save_tokens(new_token, self.uuid, self.page)
+                    #     return 'Success'
+                    # else:
+                    print('Токен недействителен, требуется аутентификация')
                         # new_token = self.retry_authentication(email, password)
                         # if new_token:
                         #     print('Токен создан после повторной аутентификации')
@@ -137,7 +138,7 @@ class PyrebaseWrapper:
                         # else:
                         #     print('Не удалось создать токен после повторной аутентификации')
                         #     
-                        return None
+                    return None
             return None
         except TimeoutError as e:
             print('Pyrebase check token: ', e)
