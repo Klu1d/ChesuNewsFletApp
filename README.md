@@ -16,10 +16,10 @@
 Новостное приложение Чеченского Государственного Университета — это мобильное приложение, которое обеспечивает доступ к последним новостям университета, анонсам событий, учебному расписанию, контактам и другой полезной информации.
 
 <div style="text-align: center;">
-  <img src="image-2.png" width="280" style="display: inline-block;"/>
-  <img src="image-3.png" width="280" style="display: inline-block;"/>
-  <img src="image-1.png" width="280" style="display: inline-block;"/>
-  <img src="image.png"   width="280" style="display: inline-block;"/>
+  <img src="assets/image1.png" width="280" style="display: inline-block;"/>
+  <img src="assets/image4.png" width="280" style="display: inline-block;"/>
+  <img src="assets/image2.png" width="280" style="display: inline-block;"/>
+  <img src="assets/image3.png" width="280" style="display: inline-block;"/>
 </div>
 
 ## Установка и Запуск
