@@ -20,7 +20,6 @@ class ChesuNews:
             self.text = soup.find('div', {"class":"clearfix"}).get_text().strip()
             self.images = [img['src'] for img in soup.find_all('img')][1:len(soup.find_all('img'))-2]
             self.datetime = datetime.strptime(self.date + " " + self.time, '%d.%m.%Y %H:%M').strftime('%d.%m.%Y %H:%M')
-
         except:
             print("Ошибка при парсинге")
     
@@ -41,14 +40,14 @@ def scrap_news(myPyrebase):
     tg = BeautifulSoup(requests.get("https://www.chesu.ru").text, 'lxml').find_all('a', {'class':'image'})
     new_number = int(tg[0]['href'].split('=')[1]) #Получение номера последней новости  
     print(new_number)  
-    current_number = 7609
+    current_number = 7866
     while current_number != new_number:
         try:
             url = f"https://www.chesu.ru/news-item?p={current_number}"
             data = list(ChesuNews(url).items().values())
             
-            print("Добавлена новость:", current_number)
             myPyrebase.set_news(id=data[0], datetime=data[4], headline=data[2], text=data[3], images=data[5], tags=data[1])
+            print("Добавлена новость:", current_number)
         
         except:
             print(f"Новость {current_number} не найдена")

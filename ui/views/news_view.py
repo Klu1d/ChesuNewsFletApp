@@ -1,234 +1,154 @@
-import time
+import json
 import flet as ft
 
-from ui.controller.top_bar import TopBar
-from ui.controller.announce import AnnounceCard
-from ui.controller.tab_display import TabDisplay
-from ui.widgets.custom_shimmer import CustomShimmer
-from firebase.flet_pyrebase import PyrebaseWrapper
+from ui.customs.top_bar import TopPanel
+from ui.customs.news_lists import NewsLists 
+from ui.customs.announcements_lists import AnnouncementsLists
+from ui.customs.categories import Categories
+from firebase.pyrebase import PyrebaseWrapper
 
 
 def NewsView(page: ft.Page, firebase: PyrebaseWrapper):
     def on_load_news_view():
-        try:
-            if firebase.check_token() == 'Success':
-                firebase.stream_moderation_decisions()
-                news_view.controls[1] = page_shimmer
-                build()
-        except AttributeError:
-            print("Значения в firebase пусты")
-            
-    def announcements(message):
-        announce_display: ft.Tab = all_tabs[1]
-        if message['data'] != None:
-            if message['event'] == 'put':
-                if message['path'] == '/':
-                    announce_display.content = ft.ListView(expand=True, padding=ft.padding.only(bottom=65), spacing=10)
-                    for key in message['data'].keys():
-                        card_content = message['data'][key]
-                        card = AnnounceCard(
-                            id=key, 
-                            status='public',
-                            margin=ft.margin.symmetric(vertical=5, horizontal=15),
-                            options_visible=False,
-                            maintain_state=True,
-                            headline=card_content.get('headline'),
-                            text=card_content.get('text'),
-                            place=card_content.get('place'),
-                            role=card_content.get('role'),
-                            username=card_content.get('username'),
-                            datetime=card_content.get('datetime'),
-                            image=card_content.get('image'),
-                            leading_button=ft.Icon(ft.icons.GROUP),
-                            trailing_button=ft.OutlinedButton('Записаться', adaptive=False, 
-                                style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=14))),
-                        )
-                        announce_display.content.controls.append(card)
-        else:
-            announce_display.content = ft.Container(
-                visible=True,
-                alignment=ft.alignment.center,
-                content=ft.Column(
-                    scroll=None,
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER, 
-                    controls=[
-                        ft.CircleAvatar(
-                            radius=47.5,
-                            bgcolor=ft.colors.with_opacity(0.3, ft.colors.GREY), 
-                            content=ft.Icon(ft.icons.SPEAKER_NOTES_OFF_OUTLINED, size=45)
-                        ),
-                        ft.Text(value='В разделе пока тишина.', size=18)
-                    ]
-                )
-            )
-            
-        page.update()
-
-    def on_load_tab_content(index):
-        current_tab = all_tabs[index]
-        full_name = page.client_storage.get('tabs')[current_tab.tab_content.value] #полное имя текущей, выбранной аббревиатуры
-        print(current_tab.tab_content.value)
-        if current_tab.content.data == 'shimmer' and current_tab.tab_content.value != 'Анонсы':
-            current_tab.content.data = 'content'
-            current_tab.content=TabDisplay(page, full_name, firebase)
-
-        if current_tab.tab_content.value == 'Анонсы':
-            page.floating_action_button.visible = True
-            # firebase.stream_public_announcements(announcements)
-            # firebase.streams['public'].close
-        else:
-            page.floating_action_button.visible = False
-
-            
-        page.client_storage.set('current_index_tab', index)
-        page.overlay.clear()
-        page.update()
-
-    def handle_logout(*e):
-        clean_tabs()
-        firebase.kill_all_streams()
-        firebase.sign_out()
-        page.controls[0].content.content.controls[1].controls[0].selected_index = 0
-        page.floating_action_button.visible = False
-        page.go('/')
-    
-    def on_click_category(e):
-        categories.open=False
-        categories.show_drag_handle=False
-        page.update()
-        
-        categories.content.content.controls[page.client_storage.get('current_index_tab')].bgcolor=None
-        categories.content.content.controls[e.control.key].bgcolor=ft.colors.BLACK12
-        page.controls[0].content.content.controls[1].controls[0].selected_index = e.control.key
-        page.update()
-        
-        on_load_tab_content(e.control.key)
-    
-    def on_click_categories(e):
-        tabs = page.client_storage.get('tabs')
-        categories.content.content.controls = []
-        for i, category in enumerate(all_tabs):
-            categories.content.content.controls.append(
-                ft.Container(
-                    key=i,
-                    on_click=on_click_category,
-                    alignment=ft.alignment.center_left, 
-                    padding=ft.padding.only(left=15), 
-                    bgcolor=None,
-                    height=50, 
-                    content=ft.Text(
-                        value=tabs[category.tab_content.value], 
-                        weight=ft.FontWeight.BOLD, 
-                        color=ft.colors.SECONDARY, 
-                        size=18
-                    )
-                ),
-            )
-        page.overlay.clear()
-        page.overlay.append(categories)
-        categories.content.content.controls[page.client_storage.get('current_index_tab')].bgcolor=ft.colors.BLACK12
-        categories.show_drag_handle=True
-        categories.open = True
-        page.update()
-        
-    def on_dismiss(e):
-        categories.show_drag_handle=False
-        categories.open = False
-        page.overlay.clear()
-        page.update()
-        
-    def build():
-        all_tabs.clear()
-        shimmer = CustomShimmer(height=page.window_height, first_big=True, tabs=False)
-        for abbreviature in page.client_storage.get('tabs').keys():
-            all_tabs.append(
-                ft.Tab(
-                    #adaptive=True,
-                    tab_content=ft.Text(
-                        size=20, 
-                        value=abbreviature, 
-                        weight=ft.FontWeight.W_900, 
-                    ),
-                    content=ft.Container(
-                        data='shimmer', 
-                        padding=ft.padding.only(left=15, right=15),
-                        content=shimmer
-                        
-                        
-                    )
-                )
-            )
-       
-        for i, category in enumerate(all_tabs):
-            categories.content.content.controls.append(
-                ft.Container(
-                    key=i,
-                    on_click=on_click_category,
-                    alignment=ft.alignment.center_left, 
-                    padding=ft.padding.only(left=15), 
-                    bgcolor=None,
-                    height=50, 
-                    content=ft.Text(
-                        value=page.client_storage.get('tabs')[category.tab_content.value], 
-                        weight=ft.FontWeight.BOLD, 
-                        color=ft.colors.SECONDARY, 
-                        size=18
-                    )
-                ),
-            )
-
-        news_view.controls[1] = ft.Stack(
-            expand=True,
-            controls=[tabs, button_categories]
-        )
-        on_load_tab_content(tabs.selected_index)
-
-    def clean_tabs():
-        all_tabs.clear()
-        page.update()
-    
-    def go_regiser_view(e):
-        page.floating_action_button.visible = False
-        page.close_dialog()
-        page.go('/index')
-        
-    def go_announce_view(e):
-        if page.client_storage.get('role') != 'Аноним':
-            page.go('/announce')
-        else:
-            page.dialog =  ft.AlertDialog(
-                adaptive=True,
-                open=True,
-                title=ft.Text('Требуется авторизация', text_align=ft.TextAlign.CENTER),
-                actions_alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                
-                content=ft.Text("Для доступа к функции создания мероприятий необходима регистрация. \
-                                Пожалуйста, зарегистрируйтесь или войдите в систему, чтобы начать \
-                                планирование событий", text_align=ft.TextAlign.CENTER),
-                actions=[ft.TextButton('Отмена',on_click=lambda _: page.close_dialog()),
-                         ft.TextButton('Регистрация', on_click=go_regiser_view)],
-                
-            )
+        page.dialog = status_info
+        if firebase.check_token() == 'Success':
+            # Если роли нет, значит это анонимный пользователь. Выводится окно с информцией об ограничениях.
+            anonymous = not(bool(page.client_storage.get('role')))
+            page.dialog.open = anonymous
+            exit.visible = anonymous
             page.update()
 
-    page.floating_action_button = ft.FloatingActionButton(
-        visible=False,
-        bgcolor=ft.colors.TERTIARY_CONTAINER,
-        shape=ft.RoundedRectangleBorder(radius=5),
-        width=135,
-        mini=True,
-        content=ft.Row(
-            [ft.Text("Мои Анонсы"),ft.Icon(ft.icons.INPUT_ROUNDED)], alignment="center", spacing=3
-        ),
-        on_click=go_announce_view
-    )
-    
-    logout_button = ft.TextButton('Выйти', on_click=handle_logout, style=ft.ButtonStyle(ft.colors.RED))
-    all_tabs = []
+            # Если пользователь не анонимный, отображается активная кнопка
+            news_view.floating_action_button.visible = not(anonymous)
+            if bool(page.client_storage.get('role')) and '-Активист' in page.client_storage.get('role'):
+                pending_events.visible = True
+                firebase.stream_moderation_decisions(notification_counts)
+                firebase.streams['moderations'].close
+            else:
+                pending_events.visible = False
+            firebase.stream_public_announcements(build_announcements)
+            firebase.streams['chesu'].close
+            
+            build_tabs()
+        page.update()
 
-    tabs = ft.Tabs(
-        #adaptive=True,
+    def build_announcements(stream_data):
+        announce_manager.stream_handler(stream_data)
+        page.update()
+
+    def notification_counts(stream_data):
+        path = stream_data['path']
+        moder_events = 0
+
+        if stream_data['event'] == 'patch' and stream_data['data']:
+            for msg in stream_data['data'].values():
+                if msg == firebase.uuid:
+                    moder_events += 1
+            if len(path) > 1:
+                count = int(pending_events.text)
+                count += 1 - moder_events
+                pending_events.text = count
+                pending_events.label_visible = bool(count)
+            else:
+                print('как ты тут оказался?', stream_data)
+        elif stream_data['event'] == 'put' and stream_data['data']:
+            for msg in stream_data['data'].values():
+                if msg.get('author_id') == firebase.uuid:
+                    moder_events += 1
+            if len(path) > 1:
+                count = int(pending_events.text)
+                count -= 1 - moder_events
+                pending_events.text = count
+                pending_events.label_visible = bool(count)
+            else:          
+                print(moder_events)           
+                count = len(stream_data.get('data')  or []) - moder_events
+                pending_events.text = count
+                pending_events.label_visible = bool(count)
+                
+        page.update()
+
+    def build_tabs():
+        for short_name in categories_info:
+            if categories_info[short_name]['visible']:
+                news_tabs.tabs.append(
+                    ft.Tab(
+                        tab_content=ft.Text(
+                            size=25, 
+                            value=short_name, 
+                            weight=ft.FontWeight.W_900, 
+                            font_family='Headline'
+                        ),
+                        content=ft.Container(
+                            content=ft.ListView(
+                                controls=[],
+                                spacing=10,
+                            )
+                        )
+                    )
+                )
+                button_categories.controls.append(
+                    ft.Container(
+                        height=50, key=len(news_tabs.tabs)-1,
+                        alignment=ft.alignment.center_left, 
+                        padding=ft.padding.only(left=15), 
+                        on_click=on_click_category,
+                        content=ft.Text(
+                            value=categories_info[short_name]['full_name'], 
+                            weight=ft.FontWeight.BOLD, 
+                            color=ft.colors.SECONDARY, 
+                            size=18
+                        )
+                    )
+                )
+        page.update()
+
+    def news_loader(index):
+        if index not in [0, 1]:
+            if news_tabs.tabs[index].content.data != 'news':
+                current_tab: ft.Tab = news_tabs.tabs[index]
+                full_name = categories_info[current_tab.tab_content.value]['full_name']
+                current_tab.content = NewsLists(page, firebase, full_name)
+                page.update()
+
+    def on_click_category(e):
+        news_tabs.selected_index = e.control.key
+        page.bottom_sheet.open = False
+        page.update()
+        news_loader(e.control.key)
+
+    def on_click_logout(e):
+        page.close_dialog()
+        page.client_storage.clear()
+        del page.views[1:]
+        page.go('')
+        
+        firebase.kill_all_streams()
+        firebase.sign_out()
+        
+        
+    with open('assets/json/categories_info.json', 'r', encoding='utf-8') as json_file:
+        categories_info = json.load(json_file)['categories_info']
+    
+    exit = ft.IconButton(ft.icons.EXIT_TO_APP_ROUNDED, icon_color='error', on_click=on_click_logout, visible=False)
+
+    status_info = ft.AlertDialog(
+        adaptive=True, content_padding=15,
+        title=ft.Text('Важная информация о вашем статусе', text_align=ft.TextAlign.CENTER),
+        content=ft.Column(scroll='hidden',
+            controls=[
+                ft.Text(
+                    'Хотим привлечь ваше внимание на то, что при входе в приложение анонимно ' +
+                    'вы можете получать свежие новости и актуальные события из университета.\n\n'+
+                    'Однако, если у вас есть аккаунт, вы получаете возможность не только сохранять ' +
+                    'интересные новости в закладки, но и предлагать собственные мероприятия для проведения.',
+                 
+                    text_align=ft.TextAlign.CENTER)]),
+        actions=[ft.TextButton('Хорошо!', on_click=lambda _: page.close_dialog())],
+        actions_alignment=ft.MainAxisAlignment.END,
+    )
+    announce_manager = AnnouncementsLists(page, firebase)
+    news_tabs = ft.Tabs(
         expand=1,
         selected_index=0,
         indicator_padding=10,
@@ -240,56 +160,126 @@ def NewsView(page: ft.Page, firebase: PyrebaseWrapper):
         unselected_label_color=ft.colors.SURFACE_VARIANT,
         divider_color=ft.colors.BACKGROUND,
         overlay_color=ft.colors.BACKGROUND,
-        on_change=lambda e: on_load_tab_content(e.control.selected_index),
-        tabs=all_tabs,
+        on_change=lambda e: news_loader(e.control.selected_index),
+        tabs=[
+            ft.Tab(
+                tab_content=ft.Text(
+                    size=25, 
+                    value='Новости', 
+                    weight=ft.FontWeight.W_900, 
+                    font_family='Headline'
+                ),
+                content=NewsLists(page, firebase, 'Новости')
+            ),
+            ft.Tab(
+                tab_content=ft.Text(
+                    size=25, 
+                    value='Анонсы', 
+                    weight=ft.FontWeight.W_900, 
+                    font_family='Headline'
+                ),
+                content=announce_manager
+            ),
+        ]
     )
-    button_categories = ft.Container(
-        
-        padding=ft.padding.only(top=3),
-        bgcolor=ft.colors.BACKGROUND,
-        content=ft.IconButton(
-            #добавляется кнопка, которая будет находится слева от категорий. Вызывающее BottomSheet
-            style = ft.ButtonStyle(
-                shape=ft.RoundedRectangleBorder(radius=3),
-                bgcolor=ft.colors.BACKGROUND,
-                color=ft.colors.ON_SECONDARY_CONTAINER,
-            ),
-            icon=ft.icons.DEHAZE_OUTLINED,
-            on_click=on_click_categories,
-            height=40,
-            width=50,
+    button_categories = Categories()
+    button_categories.controls = [
+        ft.Container(
+            height=50, key=0,
+            alignment=ft.alignment.center_left, 
+            padding=ft.padding.only(left=15), 
+            on_click=on_click_category,
+            content=ft.Text(
+                value='Новости', 
+                weight=ft.FontWeight.BOLD, 
+                color=ft.colors.SECONDARY, 
+                size=18
+            )
         ),
-    ) 
-    categories = ft.BottomSheet(
-        open=True,
-        enable_drag=True,
-        show_drag_handle=True,
-        maintain_bottom_view_insets_padding=True,
-        on_dismiss=on_dismiss,
-        content=ft.Container(
-            padding=0,
-            width=1000,
-            height=1000,
-            content=ft.Column(
-                spacing=4,
-                scroll=ft.ScrollMode.HIDDEN, 
-            ),
+        ft.Container(
+            height=50, key=1,
+            alignment=ft.alignment.center_left, 
+            padding=ft.padding.only(left=15), 
+            on_click=on_click_category,
+            content=ft.Text(
+                value='Анонсы', 
+                weight=ft.FontWeight.BOLD, 
+                color=ft.colors.SECONDARY, 
+                size=18
+            )
+        )
+    ]
+    
+
+    button_announces = ft.Container(
+        expand=True,
+        alignment=ft.alignment.center,
+        on_click=lambda _: page.go('/announce'),
+        content=ft.Column(
+            spacing=0,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            controls=[
+                ft.Icon(ft.icons.ANNOUNCEMENT_ROUNDED,color=ft.colors.INVERSE_SURFACE),
+                ft.Text('События', color=ft.colors.INVERSE_SURFACE, size=9, weight=ft.FontWeight.BOLD)
+            ]
+        ),
+    )
+    
+    button_bookmarks=ft.Container(
+        expand=True,
+        alignment=ft.alignment.center,
+        on_click=lambda _: page.go('/bookmarks'),
+        content=ft.Column(
+            spacing=0,
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            controls=[
+                ft.Icon(ft.icons.BOOKMARKS_ROUNDED,color=ft.colors.INVERSE_SURFACE),
+                ft.Text('Закладки', color=ft.colors.INVERSE_SURFACE, size=9, weight=ft.FontWeight.BOLD)
+            ]
         ),
     )
 
-    page_shimmer = CustomShimmer(height=page.window_height, first_big=True, tabs=True)
-    news_view = ft.Column(
-        data='news',
-        spacing=0,
+    pending_events = ft.Badge(
+        label_visible=False, visible=False,
+        alignment=ft.alignment.Alignment(0.6, -0.6),
+        content=ft.IconButton(icon=ft.icons.SIGNPOST_ROUNDED, icon_color='onbackground', 
+            on_click=lambda _: page.go('/review'), adaptive=False,
+            style=ft.ButtonStyle(
+                color='onbackground', 
+                shape=ft.RoundedRectangleBorder(radius=5)
+            )
+        )
+    )
+
+    news_view =  ft.View(
+        route='/news',
+        padding=0,
+        fullscreen_dialog=True,
+        floating_action_button=ft.FloatingActionButton(
+            height=50, width=page.width-page.width/2.4, visible=False,
+            bgcolor=ft.colors.ON_INVERSE_SURFACE, mini=True,
+            content=ft.Row(expand=True,
+                alignment=ft.MainAxisAlignment.SPACE_AROUND,
+                controls=[button_announces, button_bookmarks]
+            )
+        ),
+        floating_action_button_location = ft.FloatingActionButtonLocation.MINI_CENTER_FLOAT,
+        appbar=TopPanel(pending_events, exit),
         controls=[
-            TopBar(exit_button=handle_logout),
-            page_shimmer
-        ],
+            ft.Stack(
+                expand=True,
+                controls=[
+                    news_tabs,
+                    #bottom_bar,
+                    button_categories
+                ]
+            )
+        ]
     )
-
     return {
         'view': news_view,
         'load': on_load_news_view,
-        'load_tab':on_load_tab_content, 
     }
 

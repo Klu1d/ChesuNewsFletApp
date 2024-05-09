@@ -1,17 +1,15 @@
 import copy
 import flet as ft
 
-from ui.controller.board import Board
-from ui.widgets.custom_shimmer import CustomShimmer
+from ui.customs.cards import OldCard
 
 
 def BookmarksView(page, firebase):
     def on_load_bookmarks():
         try:
             preloader(True)
-            
             storage = page.client_storage.get('bookmarks')
-            display = [int(i.controls[0].key) for i in container_favorites.content.controls]
+            display = [int(i.controls[0].number) for i in container_favorites.content.controls]
             difference = list(set(storage) ^ set(display))
             
             for number in difference:
@@ -25,13 +23,14 @@ def BookmarksView(page, firebase):
                 else:
                     ind = storage.index(number)
                     news = firebase.get_news(number)[0]
-                    board = Board(page, firebase).old(
-                        checkbox=True,
-                        opacity=False,
+
+                    board = OldCard(
+                        page=page,
+                        firebase=firebase,
                         number=news['id'],
                         headline=news['headline'],
                         image=news['images'][0],
-                        time=news['datetime'],
+                        datetime=news['datetime'],
                     )
                     container_favorites.content.controls.insert(ind,
                         ft.Stack(
@@ -41,9 +40,9 @@ def BookmarksView(page, firebase):
                                     data=ind,
                                     visible=False,
                                     padding=5,
-                                    height=100,
-                                    width=page.width,
-                                    margin=board.margin,
+                                    height=board.height -10,
+                                    width=board.width,
+                                    margin=ft.margin.symmetric(0,15),
                                     border_radius=15,
                                     on_click=on_click_container_checkbox,
                                     alignment=ft.alignment.top_right,
@@ -59,7 +58,7 @@ def BookmarksView(page, firebase):
                     bookmark_view.controls[0].actions[0].visible = True
                     empty_icon.visible = False     
             page.update()
-        except Exception as e:
+        except AttributeError as e:
             print('BookmarksView: ', e)
         finally:    
             preloader(False)
@@ -172,7 +171,7 @@ def BookmarksView(page, firebase):
      
     container_favorites = ft.Container(
         alignment=ft.alignment.top_center,
-        content=ft.Column()
+        content=ft.Column(spacing=0)
     )
     
     empty_icon = ft.Container(
@@ -203,11 +202,12 @@ def BookmarksView(page, firebase):
         padding=0,
         controls=[
             ft.AppBar(
-                center_title=True,
-                title=ft.Text('Избранное', size=16), 
-                actions=[ft.TextButton('Выбрать', 
+                center_title=True,            
+                title=ft.Text('Избранное', weight=ft.FontWeight.BOLD, size=16), 
+                actions=[ft.TextButton('Выбрать',
                     visible=False if container_favorites.content.controls == [] else True,
-                    on_click=on_click_chooce)]),
+                    on_click=on_click_chooce)]
+            ),
             ft.Stack(
                 controls=[
                     empty_icon,
