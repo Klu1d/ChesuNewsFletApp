@@ -29,7 +29,7 @@
     FIREBASE_KEYS = {
         "apiKey": "123321",
         "authDomain": "chesu-news.firebaseapp.com",
-        "databaseURL": "https://chesu-news-default-rtdb.firebaseio.com",
+        "databaseURL": "https://chesu-neasdasdw45.fasidasrdaefsdfbgasd.com",
         "projectId": "chesu-news",
         "storageBucket": "chesu-news.appspot.com",
         "messagingSenderId": "1232131",
