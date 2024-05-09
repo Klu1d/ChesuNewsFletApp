@@ -31,7 +31,7 @@
         "authDomain": "chesu-news.firebaseapp.com",
         "databaseURL": "https://chesu-neasdasdw45.fasidasrdaefsdfbgasd.com",
         "projectId": "chesu-news",
-        "storageBucket": "chesu-news.appspot.com",
+        "storageBucket": "cnews.apasdas4312pot.com",
         "messagingSenderId": "1232131",
         "appId": "1:403596570161asd32423:web:aslkdm3423rasd",
         "measurementId": "G-34qasdawsr23r"
