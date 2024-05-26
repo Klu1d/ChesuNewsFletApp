@@ -144,7 +144,7 @@ class PyrebaseWrapper:
             print('Pyrebase check token: ', e)
             return None
 
-
+    
 
     def set_news(self, id: int, datetime: str, headline: str, text: str, images: list, tags: list):
         data_to_upload = {
@@ -157,6 +157,13 @@ class PyrebaseWrapper:
         }
         self.db.child('chesu').child('news').child(str(id)).set(data=data_to_upload, token=self.idToken)
 
+    def get_latest_news_key(self):
+        news = self.db.child("chesu").child("news").get()
+        if news.each() is not None:
+            keys = [item.key() for item in news.each()]
+            latest_key = max(keys, key=int)
+            return int(latest_key)
+        return None
 
     def get_users_tabs(self):
         tabs = self.db.child('users').child(self.uuid).child('tabs').get(token=self.idToken).val()

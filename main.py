@@ -103,7 +103,6 @@ def main(page: ft.Page):
     )
 
     firebase = PyrebaseWrapper(page)
-    #scrap_news(firebase)
     controller = Controller(page, firebase)
     page.on_route_change = controller.route_change
     page.on_view_pop = controller.view_pop
@@ -125,6 +124,7 @@ def main(page: ft.Page):
             primary_container=ft.colors.GREY_200,
         ),
     )
+    page.theme_mode = page.client_storage.get('theme_mode') if page.client_storage.get('theme_mode') else ft.ThemeMode.SYSTEM
     page.update()
     page.theme.page_transitions.ios = ft.PageTransitionTheme.CUPERTINO
     page.theme.page_transitions.android = ft.PageTransitionTheme.OPEN_UPWARDS
@@ -154,5 +154,6 @@ def main(page: ft.Page):
     ]
     on_load_main()
     page.update()
+    scrap_news(firebase)
 
 ft.app(target=main)

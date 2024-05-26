@@ -4,6 +4,8 @@ from typing import Any
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+from firebase.pyrebase import PyrebaseWrapper
+
 class ChesuNews:
     def __init__(self, url):
         response = requests.get(url)
@@ -36,19 +38,23 @@ class ChesuNews:
         
     
 
-def scrap_news(myPyrebase):
+def scrap_news(firebase: PyrebaseWrapper):
     tg = BeautifulSoup(requests.get("https://www.chesu.ru").text, 'lxml').find_all('a', {'class':'image'})
     new_number = int(tg[0]['href'].split('=')[1]) #Получение номера последней новости  
-    print(new_number)  
-    current_number = 7866
-    while current_number != new_number:
-        try:
-            url = f"https://www.chesu.ru/news-item?p={current_number}"
-            data = list(ChesuNews(url).items().values())
+ 
+    current_number = firebase.get_latest_news_key()
+    if current_number == new_number:
+        return None
+    else:
+        while current_number <= new_number:
+            try:
+                url = f"https://www.chesu.ru/news-item?p={current_number}"
+                data = list(ChesuNews(url).items().values())
+                
+                
+                firebase.set_news(id=data[0], datetime=data[4], headline=data[2], text=data[3], images=data[5], tags=data[1])
+                print("Добавлена новость:", current_number)
             
-            myPyrebase.set_news(id=data[0], datetime=data[4], headline=data[2], text=data[3], images=data[5], tags=data[1])
-            print("Добавлена новость:", current_number)
-        
-        except:
-            print(f"Новость {current_number} не найдена")
-        current_number = current_number + 1
+            except:
+                print(f"Новость {current_number} не найдена")
+            current_number = current_number + 1
