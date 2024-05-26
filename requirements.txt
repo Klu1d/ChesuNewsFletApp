@@ -3,3 +3,4 @@ flet_contrib
 pyrebase4
 multipledispatch
 bs4
+lxml
