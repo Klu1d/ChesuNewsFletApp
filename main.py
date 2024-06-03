@@ -154,6 +154,5 @@ def main(page: ft.Page):
     ]
     on_load_main()
     page.update()
-    scrap_news(firebase)
 
 ft.app(target=main)

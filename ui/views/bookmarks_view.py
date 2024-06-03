@@ -141,13 +141,16 @@ def BookmarksView(page, firebase):
     
     def on_click_remove_favorites(e: ft.ControlEvent):
         bookmarks = page.client_storage.get('bookmarks')
-            
+        pretedents_on_remove = []
         for checkbox in copy.copy(container_favorites.content.controls):
             if checkbox.controls[1].content.content.value == True:
                 container_favorites.content.controls.remove(checkbox)
-                bookmarks.remove(int(checkbox.controls[0].key))
-                page.client_storage.set('bookmarks', bookmarks)
-                firebase.set_bookmark(bookmarks)
+                pretedents_on_remove.append(int(checkbox.controls[1].data))
+        
+        bookmarks = [number for ind, number in enumerate(bookmarks) if ind not in pretedents_on_remove]
+        page.client_storage.set('bookmarks', bookmarks)
+        firebase.set_bookmark(bookmarks)
+
         if bookmarks == []:
             bookmark_view.controls[0].actions[0] = ft.TextButton(
                 text='Выбрать', 

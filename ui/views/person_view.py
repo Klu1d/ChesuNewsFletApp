@@ -6,8 +6,16 @@ from firebase.pyrebase import PyrebaseWrapper
 
 def PersonView(page: ft.Page, firebase: PyrebaseWrapper):
     def on_load_person_view():
+        name.value = page.client_storage.get('firstname') + ' ' + page.client_storage.get('lastname') if page.client_storage.get('firstname') else ft.Text()
+        status.value = page.client_storage.get('role')
+        email.value = page.client_storage.get('email')
         page.update()
 
+
+    name = ft.Text(size=18)
+    status = ft.Text(size=18)
+    email = ft.Text(size=18)
+    
     person_view = ft.View(
         adaptive=True,
         route='/profile', padding=ft.padding.symmetric(vertical=5, horizontal=20), scroll='hidden',
@@ -32,7 +40,7 @@ def PersonView(page: ft.Page, firebase: PyrebaseWrapper):
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 controls=[
                                     ft.Text('Имя', size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text(page.client_storage.get('firstname') + ' ' + page.client_storage.get('lastname'), size=18) if page.client_storage.get('firstname') else ft.Text()
+                                    name
                                 ]
                             )
                         ),
@@ -45,7 +53,7 @@ def PersonView(page: ft.Page, firebase: PyrebaseWrapper):
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 controls=[
                                     ft.Text('Статус', size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text(page.client_storage.get('role'), size=18),
+                                    status
                                 ]
                             )
                         ),
@@ -58,7 +66,7 @@ def PersonView(page: ft.Page, firebase: PyrebaseWrapper):
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                 controls=[
                                     ft.Text('Почта', size=18, weight=ft.FontWeight.BOLD),
-                                    ft.Text(page.client_storage.get('email'),  size=18),
+                                    email
                                 ]
                             )
                         ),
